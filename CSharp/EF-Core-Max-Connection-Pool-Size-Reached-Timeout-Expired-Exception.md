@@ -287,24 +287,215 @@ internal class Program
 
   這個布林物件將會用於控制要採用 Entity Framework 的方式來存取資料庫紀錄，還是要使用 DbConnection 來存取資料庫，這裡會需要手動 Open 與 Close 這次的資料庫連線，用來模擬與分析不同的作法差別在哪裡。
   
-接下來就是要宣告連線字串文字到 connectionString 物件內，這裡透過 MaxPoolSize & ConnectTimeout 兩個數值，宣告這個連線字串的連線物件執行特性。
+接下來就是要宣告連線字串文字到 connectionString 物件內，這裡透過 MaxPoolSize & ConnectTimeout 兩個數值，宣告這個連線字串的連線物件執行特性。因此，便可以在這個程式內，調整這些物件值，反覆迭代執行程式，觀察看到不同結果，了解與分析結果。
 
+緊接著將會透過剛剛建立好的連線字串，產生出一個 DbContextOptions 物件，有了這個物件，便可以接著來生成出 DbContext 物件，如此就可以來進行資料庫的紀錄存取動作囉。
 
-        // 設定資料庫連線的最大連線數量
-        int MaxPoolSize = 4;
-        // 設定資料庫連線的最大等待時間
-        int ConnectTimeout = 5;
-        bool UsingEFCoreQuery = true;
-
-        #region 準備進行資料庫連線或者建立資料庫
-        // 連線字串
-        string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TestPool;" +
+```csharp
+string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=TestPool;" +
             $"Max Pool Size={MaxPoolSize};Connect Timeout={ConnectTimeout};MultipleActiveResultSets=True";
-        // 建立資料庫連線
-        DbContextOptions<SchoolContext> options =
-            new DbContextOptionsBuilder<SchoolContext>()
-            .UseSqlServer(connectionString)
-            .Options;
+```
+
+由於這次使用的是 MSSQL Server 資料庫服務，因此，對於若在連線字串內沒有指定 [Max Pool Size] ，則會使用預設值 100；有更多關於這方面的資訊，另外，也可以使用 [Min Pool Size] 來指定此次資料庫存取的 Pool 內最少需要具備這麼多的連線數量存在，更多的資訊，可以參考 [SQL Server Connection Pooling (ADO.NET)](https://learn.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-connection-pooling?WT.mc_id=DT-MVP-5002220)
+
+對於在連線字串內用到的 [Connect Timeout] ，這裡指的是創建資料庫連接的超時時間，而不是通過該連接執行的命令的超時時間，因此，一旦想要取得一個資料庫連線動作需求，此時連線集區內沒有足夠的物件可供使用，而連線物件也尚未超過最大限制，此時，若無法在這裡指定時間內取得連線物件，則會造成例外異常拋出。更多資訊，可以參考 [All SQL Server SqlConnection Properties](https://www.connectionstrings.com/all-sql-server-connection-string-keywords/)
+
+現在將會執行到底下程式碼
+
+```csharp
+using (var context = new SchoolContext(options))
+{
+    // 檢查資料庫是否存在
+    if (context.Database.CanConnect() == false)
+    {
+        // 建立資料庫
+        await context.Database.EnsureCreatedAsync();
+        context.Database.GetDbConnection();
+        var connection = context.Database.GetDbConnection();
+    }
+}
+```
+
+在這裡透過剛剛建立的 DbContextOptions 類別物件， options 物件，建立出 SchoolContext 物件，透過這個物件首先檢查資料庫是否存在，若不存在的話，則會建立起一個新的資料庫；到此為止，這個程式一旦啟動之後，將會自動建立一個測試用的資料庫，並且這個資料庫內會擁有 [Course] & [Student] 這兩個 Table 資料表
+
+找到 [#region 模擬建立多個 DbContext 來進行資料庫存取，故意造成 Connection Pool 被耗盡的情況] 這段程式碼區塊，這裡將會嘗試啟動 10 個工作(或者說是有 10 個工作背景執行緒)，在每個執行緒內，將會建立一個 SchoolContext 物件，嘗試進行資料庫的存取動作
+
+> #region 可讓您指定在使用 Visual Studio 程式碼編輯器的大綱功能時，可以展開或摺疊的程式碼區塊。
+
+首先，確認測試條件變數的物件值如下：
+
+```csharp
+int MaxPoolSize = 4;
+int ConnectTimeout = 5;
+bool UsingEFCoreQuery = true;
+```
+
+這裡表示連線集區內最多僅會有 4 個連線物件，若這些連線物件被取出之後，沒有立即歸還，第五個需求者想要一個連線物件，不過超過了 5 秒之後都沒有取得連線物件(因為前面四個連線物件都遲遲不歸還)，此時，應用程式將會拋出例外異常；最後一個變數則是宣告要使用 Entity Framework 的方式來進行資料庫存取。
+
+底下為這樣要執行的程式碼內容
+
+```csharp
+using (var context = new SchoolContext(options))
+{
+    if (UsingEFCoreQuery)
+    {
+        #region 使用 EF Core 的 SqlQuery 來進行查詢
+        Console.WriteLine($"第{idx}工作已經開始 " + DateTime.Now.ToString("mm:ss"));
+        var result = context.Database
+        .SqlQuery<string>($"SELECT GETDATE() AS D");
+        Console.WriteLine($"第{idx}工作準備休息 " + DateTime.Now.ToString("mm:ss"));
+        // 這裡休息多久，都不會有例外異常發生，因為，執行完 SQL 命令，連線就立即關閉了
+        Thread.Sleep(5000);
+        Console.WriteLine($"第{idx}工作正要結束 " + DateTime.Now.ToString("mm:ss"));
+        //var std = new Student()
+        //{
+        //    Name = "Bill"
+        //};
+        //context.Students.Add(std);
+        //context.SaveChanges();
+        #endregion
+    }
+    else
+    {
+      ...
+    }
+}
+```
+
+找到 [#region 使用 EF Core 的 SqlQuery 來進行查詢] 區段程式碼，可以看到這裡將會透過 `context.Database.SqlQuery` 送出 `SELECT GETDATE() AS D` 指定到資料庫內，不過，在送出該命令之後，會使用 `Thread.Sleep(5000)` 敘述來強制使得當前工作執行緒休息五秒，看看這樣是否會造成連線物件被霸占五秒，導致第六個執行緒因為遲遲無法取得連線物件，而導致系統崩潰。
+
+現在，來實際執行這個測試程式，看看執行結果
+
+```
+第5工作已經開始 49:46
+第1工作已經開始 49:46
+第6工作已經開始 49:46
+第2工作已經開始 49:46
+第4工作已經開始 49:46
+第7工作已經開始 49:46
+第0工作已經開始 49:46
+第3工作已經開始 49:46
+第5工作準備休息 49:46
+第4工作準備休息 49:46
+第0工作準備休息 49:46
+第6工作準備休息 49:46
+第1工作準備休息 49:46
+第7工作準備休息 49:46
+第2工作準備休息 49:46
+第3工作準備休息 49:46
+第8工作已經開始 49:47
+第8工作準備休息 49:47
+第9工作已經開始 49:48
+第9工作準備休息 49:48
+第4工作正要結束 49:51
+第7工作正要結束 49:51
+第3工作正要結束 49:51
+第5工作正要結束 49:51
+第0工作正要結束 49:51
+第1工作正要結束 49:51
+第6工作正要結束 49:51
+第2工作正要結束 49:51
+第8工作正要結束 49:52
+第9工作正要結束 49:53
+```
+
+從這裡執行結果，可以看到同時啟動 10 個工作執行緒，並不會受到連線集區最大連線物件 5 個限制有所影響
+
+接下來，需要修改測試條件變數的物件值如下：
+
+```csharp
+bool UsingEFCoreQuery = false;
+```
+
+在這裡將會執行底下的程式碼
+
+```csharp
+using (var context = new SchoolContext(options))
+{
+    if (UsingEFCoreQuery)
+    {
+      ...
+    }
+    else
+    {
+        #region 使用 DbConnection 來存取資料庫，但是故意延遲關閉連線時間
+        using (var cn = context.Database.GetDbConnection())
+        {
+            Console.WriteLine($"第{idx}工作開啟連線 " + DateTime.Now.ToString("mm:ss"));
+            cn.Open();
+            // 關閉前休息3秒，並註解底下四行，同樣會造成例外異常
+            var cmd = cn.CreateCommand();
+            cmd.CommandText = "SELECT GETDATE() AS D";
+            var dr = cmd.ExecuteReader();
+            dr.Read();
+            Console.WriteLine($"第{idx}工作準備休息 " + DateTime.Now.ToString("mm:ss"));
+            // 這裡若將休息時間改為 3000 (3秒)，將會造成底下錯誤
+            // -----------------------------------------------------
+            // System.InvalidOperationException: 'Timeout expired.
+            // The timeout period elapsed prior to obtaining a connection
+            // from the pool.  This may have occurred because
+            // all pooled connections were in use and max pool size was reached.'
+            Thread.Sleep(3000);
+            // 這裡換成 await Task.Delay 同樣無效，會造成例外異常
+            //await Task.Delay(3000);
+            Console.WriteLine($"第{idx}工作正要結束 " + DateTime.Now.ToString("mm:ss"));
+            cn.Close();
+        }
+        #endregion
+    }
+}
+```
+
+首先透過 `context.Database.GetDbConnection()` 方法，取得 [DbConnection 類別](https://learn.microsoft.com/zh-tw/dotnet/api/system.data.common.dbconnection?WT.mc_id=DT-MVP-5002220) 物件。
+
+接著，使用 Open() 方法來開啟資料庫連接，然後要使用 [ExecuteReader] 來執行 `SELECT GETDATE() AS D` SQL 查詢命令，經過執行了　［Read()] 方法之後，卻不立即執行 [Close()] 關閉連線方法，而是故意休息五秒鐘，這裡是要模擬也許執行了一個複雜的 SQL 命令，需要花費許多時間才能夠得到結果，又或者取得 SQL 命令執行結果後，但是，直接去處理其他事情，造成超過五秒以上的時間，最後才去呼叫關閉連線方法。
+
+不論是哪個做法，都將造成從連線集區取得的連線物件沒有用完立即歸還，導致連線集區內沒有可用的連線物件，進而使得其他工作執行緒要進行資料庫存取動作時候，無法擁有一個連線物件來呼叫遠端資料庫 SQL 命令，最後因為超過 5 秒的逾時限制，使得該應用程式噴出例外異常錯誤，最終導致該應用程式執行失敗，無法繼續往下執行。
+
+現在，實際來執行這個應用程式
+
+底下是執行輸出內容
+
+```
+第1工作開啟連線 07:46
+第2工作開啟連線 07:46
+第6工作開啟連線 07:46
+第7工作開啟連線 07:46
+第5工作開啟連線 07:46
+第3工作開啟連線 07:46
+第0工作開啟連線 07:46
+第4工作開啟連線 07:46
+第2工作準備休息 07:46
+第5工作準備休息 07:46
+第1工作準備休息 07:46
+第6工作準備休息 07:46
+第8工作開啟連線 07:47
+第9工作開啟連線 07:48
+第2工作正要結束 07:49
+第6工作正要結束 07:49
+第1工作正要結束 07:49
+第5工作正要結束 07:49
+第3工作準備休息 07:49
+第4工作準備休息 07:49
+第7工作準備休息 07:49
+第0工作準備休息 07:49
+第4工作正要結束 07:52
+第3工作正要結束 07:52
+第7工作正要結束 07:52
+第0工作正要結束 07:52
+第9工作準備休息 07:52
+第9工作正要結束 07:55
+```
+
+可是，這個時候，這個應用程式卻沒有執行完成，而得到了
+
+System.InvalidOperationException: 'Timeout expired.  The timeout period elapsed prior to obtaining a connection from the pool.  This may have occurred because all pooled connections were in use and max pool size was reached.'
+
+這樣的例外異常訊息，而 Visual Studio 2022 也停留在底下的畫面
+
+![](../Images/X2023-9999.png)
+
+
 
 
 
