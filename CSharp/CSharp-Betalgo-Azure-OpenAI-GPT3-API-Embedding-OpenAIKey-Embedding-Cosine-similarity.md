@@ -1,5 +1,5 @@
 # 第一次使用 C# 來體驗 Azure OpenAI Embedding 內嵌 API 驗經驗分享 - 開發教學
-CSharp-Betalgo-Azure-OpenAI-GPT3-API-Embedding-OpenAIKey-Embedding-Cosine-similarity.md
+
 ![](../Images/X2023-9992.png)
 
 上一篇文章 [第一次使用 C# 來呼叫 Azure OpenAI API 初體驗經驗分享 - 開發教學](https://csharpkh.blogspot.com/2023/04/CSharp-Betalgo-Azure-OpenAI-GPT3-API-Prompt-OpenAIKey-Completion-Davinci.html)
