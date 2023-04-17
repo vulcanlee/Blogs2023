@@ -1,4 +1,6 @@
-# 與 Azure OpenAI Server 相關技術名詞彙整
+# Azure OpenAI Server 相關技術名詞彙整
+
+![](../Images/X2023-9988.png)
 
 (2023/04/07 出版)
 
