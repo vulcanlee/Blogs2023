@@ -22,7 +22,7 @@ Razor 指示詞是一種用於控制 Razor 引擎的語法元素，可以影響�
 
 ## 建立 Blazor Wasm 專案，觀察 Razor Directive 做了甚麼事情?
 
-為了要了解甚麼是 Razor Component，現在來由 Blazor 專案範本建立一個專案，實際觀察 Razor Component 樣貌。
+為了要了解觀察 Razor Directive 做了甚麼事情?現在來由 Blazor 專案範本建立一個專案，實際觀察 Razor Directive 指示詞存在與否，對於整體專案背後，造成了甚麼變化。
 
 * 打開 Visual Studio 2022 IDE 應用程式
 * 從 [Visual Studio 2022] 對話窗中，點選右下方的 [建立新的專案] 按鈕

@@ -231,6 +231,41 @@ GPT Embedding 是通過一個基於 Transformer 結構的編碼器，將每個�
 
 您還可以使用內嵌技術將模型集成到您的應用程序中，以便於用戶與您的應用程序進行交互並獲取問題解答。此外，如果您的數據集很大，您還可以考慮使用 GPT-3 的 bulk teaching 技術來將新的知識直接注入模型中。
 
+# AGI Artificial General Intelligence
+
+# Prompt Completion
+
+Prompt Completion 是 GPT 中一種應用，它使用 GPT 模型來完成用戶提供的提示。Prompt Completion 可以用於生成文本、自動摘要、翻譯等應用中。它可以根據用戶提供的提示生成合適的文本，並且可以不斷地根據上下文進行調整和改進。
+# Chat Completion
+
+Chat Completion 是 GPT 中一種應用，它使用 GPT 模型來生成對話的下一個回應。Chat Completion 可以用於訓練聊天機器人、自動回覆系統等應用中。它可以根據用戶的輸入生成合適的回應，並且可以不斷地根據上下文進行調整和改進。
+
+
+# Prompt Completion 與 Chat Completion 的相同與相異點
+
+Prompt Completion 與 Chat Completion 是兩種不同的 OpenAI API 模式，它們在用途和功能上有一定的相似性和差異。 
+
+* 相同點：
+
+  * 兩者都基於 GPT-3 模型，用於生成自然語言文本。
+  * 兩者都可以用於回答問題、撰寫文章、創建摘要等多種應用場景。
+  * 兩者都需要使用者提供輸入，以便模型生成相應的回應。 
+
+* 相異點：
+  * Prompt Completion 通常用於單次輸入和單次回應。使用者提供一個輸入（prompt），模型生成一個相應的回應。這種模式適用於簡單的問答、文本生成等場景。
+  * Chat Completion 則是為多回合對話設計的。它可以處理使用者和模型之間的多個交互，並保持上下文連貫性。這種模式適用於較為複雜的對話場景，例如客服、教學等。
+  * 在 Chat Completion 中，使用者需要提供一個消息列表，每個消息包含角色（"user" 或 "assistant"）和內容。這有助於模型理解對話歷史並生成合適的回應。而在 Prompt Completion 中，使用者只需提供一個單獨的輸入。
+  * Chat Completion 更適合處理上下文敏感的問題，因為它可以根據先前的對話內容生成回應。而 Prompt Completion 則更適合獨立的問題和回答。 
+
+總之，Prompt Completion 和 Chat Completion 都是基於 GPT-3 的文本生成方法，但它們在交互方式和適用場景上有所不同。Prompt Completion 更適合單次輸入和回應，而 Chat Completion 更適合多回合對話和上下文敏感的應用。
+
+# 
+
+
+# AI History
+
+* Machine Learning
+* Deep Learning
 
 
 
