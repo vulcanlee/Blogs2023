@@ -149,7 +149,7 @@ namespace HtmlToText
 
 底下將會是執行後的螢幕截圖結果
 
-![](../Images/X2023-9946.png)
+![](../Images/X2023-9945.png)
 
 而原始的 HTML 在瀏覽器上看到的畫面如下：
 
