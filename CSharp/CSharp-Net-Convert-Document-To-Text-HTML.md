@@ -2,7 +2,7 @@
 
 ![](../Images/X2023-9948.png)
 
-在 [上一篇文章](https://csharpkh.blogspot.com/2023/05/CSharp-Net-Convert-Document-To-Text-HTML.html) 有討論到如何將 HTML 文件檔案轉換成為文字內容，在這份文章中，將會是這個轉換成為文字內容系列文章的第 2 個，在這裡將會探討如何將 HTML 類型的檔案，抽取出裡面的文字內容出來。
+在 [上一篇文章](https://csharpkh.blogspot.com/2023/05/CSharp-Net-Convert-Document-To-Text-PDF.html) 有討論到如何將 PDF 文件檔案轉換成為文字內容，在這份文章中，將會是這個轉換成為文字內容系列文章的第 2 個，在這裡將會探討如何將 HTML 類型的檔案，抽取出裡面的文字內容出來。
 
 HTML（HyperText Markup Language，超文本標記語言）是一種標準的網頁標記語言，用於描述網頁的結構和內容。它不是一種程式語言，而是一種用於組織和展示網頁元素（如文本、圖像、超連結等）的標記語言。
 
