@@ -184,7 +184,9 @@ var prompt = @"{{$input}}"
 await kernel.RunAsync(inputContent, myFunction)
 ```
 
-這個非同步方法呼叫之後，將會得到一個型別為 [SKContext] 物件，
+這個非同步方法呼叫之後，將會得到一個型別為 [SKContext] 物件，從這個物件可以知道剛剛呼叫的結果是否成功，或者有錯誤、甚至產生了例外異常。
+
+若正確無誤，便可以將呼叫結果的文字取得，列印到螢幕上。
 
 
 
