@@ -46,8 +46,6 @@
 * 使用底下 C# 程式碼取代原始的程式碼
 
 ```csharp
-
-```csharp
 namespace csLog01
 {
     /// <summary>
