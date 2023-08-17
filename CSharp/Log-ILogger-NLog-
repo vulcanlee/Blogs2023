@@ -1,0 +1,347 @@
+# 在 .NET 7 Console 專案下，搭配 ILogger 介面來使用 與 NLog
+
+![](../Images/X2023-9917.png)
+
+在上一篇文章 [.NET C# 第一次 NLog 的使用說明](https://csharpkh.blogspot.com/2023/08/Log-NLog-First-Time.html) 中，說明了當程式設計師想要一個日誌機制這樣功能需求的時候，往往是自己打造輪子，認為沒有人可以寫得比我好，沒想到這僅是讓費更多的時間與成本，並且造成未來程式碼維護上的困擾與難以維護狀況。
+
+## 建立 Console 類型專案
+
+請依照底下的操作，建立起這篇文章需要用到的練習專案
+
+* 打開 Visual Studio 2022 IDE 應用程式
+* 從 [Visual Studio 2022] 對話窗中，點選右下方的 [建立新的專案] 按鈕
+* 在 [建立新專案] 對話窗右半部
+  * 切換 [所有語言 (L)] 下拉選單控制項為 [C#]
+  * 切換 [所有專案類型 (T)] 下拉選單控制項為 [主控台]
+* 在中間的專案範本清單中，找到並且點選 [主控台應用程式] 專案範本選項
+  > 專案，用於建立可在 Windows、Linux 及 macOS 於 .NET 執行的命令列應用程式
+* 點選右下角的 [下一步] 按鈕
+* 在 [設定新的專案] 對話窗
+* 找到 [專案名稱] 欄位，輸入 `csLog03` 作為專案名稱
+* 在剛剛輸入的 [專案名稱] 欄位下方，確認沒有勾選 [將解決方案與專案至於相同目錄中] 這個檢查盒控制項
+* 點選右下角的 [下一步] 按鈕
+* 現在將會看到 [其他資訊] 對話窗
+* 在 [架構] 欄位中，請選擇最新的開發框架，這裡選擇的 [架構] 是 : `.NET 7.0 (標準字詞支援)`
+* 在這個練習中，需要去勾選 [不要使用最上層陳述式(T)] 這個檢查盒控制項
+  > 這裡的這個操作，可以由讀者自行決定是否要勾選這個檢查盒控制項
+* 請點選右下角的 [建立] 按鈕
+
+稍微等候一下，這個主控台專案將會建立完成
+
+## 安裝要用到的 NuGet 開發套件
+
+因為開發此專案時會用到這些 NuGet 套件，請依照底下說明，將需要用到的 NuGet 套件安裝起來。
+
+### 安裝 NLog.Extensions.Logging 套件
+
+這個套件將會是 NLog 日誌架構的擴充套件，它提供 NLog 日誌架構的擴充功能。NLog.Extensions.Logging 套件是 NLog 的一個擴展，它允許你使用 Microsoft.Extensions.Logging 的 ILogger 接口來寫日誌。這使得你可以在 .NET Core 應用程序中使用 NLog 而無需直接依賴 NLog 的 NuGet 套件。
+
+從 NuGet 網站中可以查看到 [NLog.Extensions.Logging](https://www.nuget.org/packages/NLog.Extensions.Logging#dependencies-body-tab) 相依性資訊，從底下相依性清單說明中，可以看到這個套件，將會相依於 [NLog] 套件，這表示當使用了 [NLog.Extensions.Logging] 套件後，會自動引用 [NLog] 這個 NuGet 套件
+
+```
+.NETFramework 4.6.1
+Microsoft.Extensions.Configuration.Abstractions (>= 2.1.0)
+Microsoft.Extensions.Logging (>= 2.1.0)
+NLog (>= 5.2.3)
+
+.NETStandard 1.3
+Microsoft.Extensions.Configuration.Abstractions (>= 1.0.0)
+Microsoft.Extensions.Logging.Abstractions (>= 1.0.0)
+NETStandard.Library (>= 1.6.0)
+NLog (>= 5.2.3)
+
+.NETStandard 1.5
+Microsoft.Extensions.Configuration.Abstractions (>= 1.0.0)
+Microsoft.Extensions.Logging.Abstractions (>= 1.0.0)
+NETStandard.Library (>= 1.6.0)
+NLog (>= 5.2.3)
+
+.NETStandard 2.0
+Microsoft.Extensions.Configuration.Abstractions (>= 2.1.0)
+Microsoft.Extensions.Logging (>= 2.1.0)
+NLog (>= 5.2.3)
+
+.NETStandard 2.1
+Microsoft.Extensions.Configuration.Abstractions (>= 3.1.0)
+Microsoft.Extensions.Logging (>= 3.1.0)
+NLog (>= 5.2.3)
+
+net6.0
+Microsoft.Extensions.Configuration.Abstractions (>= 6.0.0)
+Microsoft.Extensions.Logging (>= 6.0.0)
+NLog (>= 5.2.3)
+```
+
+在這裡並不需要安裝 NLog.Schema 這個套件，因為，在這個範例中，將會 NLog 設定內容，宣告在應用程式設定 (appsettings.json ) 檔案內。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `NLog.Extensions.Logging`
+* 點選 [NLog.Extensions.Logging] 套件名稱，請選擇作者為 [Microsoft,Julian Verdurmen] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
+  >若沒有發現到 [屬性] 視窗，請在 [Visual Studio] 功能表中，點選 [檢視] > [屬性視窗] 功能選項
+
+### 安裝 Microsoft.Extensions.Configuration 套件
+
+Microsoft.Extensions.Configuration 是 .NET 的一個擴展套件，允許你輕鬆地從各種來源讀取組態設定。它可用於讀取來自檔案、環境變數、命令列參數和其他來源的組態設定。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `Microsoft.Extensions.Configuration`
+* 點選 [Microsoft.Extensions.Configuration] 套件名稱，請選擇作者為 [Microsoft] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
+### 安裝 Microsoft.Extensions.DependencyInjection 套件
+
+Microsoft.Extensions.DependencyInjection (DI) 套件是 .NET Core 的一個擴展套件，它提供了一個一致的方法來註冊和解析依賴項。它可以用在任何 .NET Core 應用程序中，無論是 ASP.NET Core 應用程序還是命令列應用程序。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `Microsoft.Extensions.DependencyInjection`
+* 點選 [Microsoft.Extensions.DependencyInjection] 套件名稱，請選擇作者為 [Microsoft] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
+## 建立 appsettings.json 設定檔
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點]
+* 從彈出功能表清單中，點選 [新增項目] 這個功能選項清單
+* 此時，將會看到 [新增項目 - csLog03] 視窗
+* 在此對話窗右上方的文字輸入盒內，輸入 `json`
+* 搜尋出與 json 有關的檔案範本
+* 在該對話窗的中間區域，找到並點選 [JSON 檔案]
+* 在下方 [名稱] 欄位內，輸入 `appsettings.json` 作為檔案名稱
+* 點選右下方 [新增] 按鈕，將這個檔案加入到專案內
+* 在 [方案總管] 內找到並且點選 [appsettings.json] 檔案這個節點
+* 從 [屬性] 視窗中，將 [複製到輸出目錄] 屬性值改為 [有更新時才複製]，這樣才能讓 [NLog.config] 檔案在執行時，能夠被複製到執行目錄內
+
+  >若沒有發現到 [屬性] 視窗，請在 [Visual Studio] 功能表中，點選 [檢視] > [屬性視窗] 功能選項
+
+* 使用底下的 XML 內容來替換掉這個檔案內的內容
+
+```json
+{
+  "Logging": {
+    "NLog": {
+      "IncludeScopes": false,
+      "ParseMessageTemplates": true,
+      "CaptureMessageProperties": true
+    }
+  },
+  "NLog": {
+    "autoreload": true,
+    "internalLogLevel": "Info",
+    "internalLogFile": "c:/temp/Sample-internal.log",
+    "throwConfigExceptions": true,
+    "targets": {
+      "console": {
+        "type": "Console",
+        "layout": "${date}|${level:uppercase=true}|${message} ${exception:format=tostring}|${logger}|${all-event-properties}"
+      },
+      "file": {
+        "type": "AsyncWrapper",
+        "target": {
+          "wrappedFile": {
+            "type": "File",
+            "fileName": "c:/temp/console-sample.log",
+            "layout": {
+              "type": "JsonLayout",
+              "Attributes": [
+                {
+                  "name": "timestamp",
+                  "layout": "${date:format=o}"
+                },
+                {
+                  "name": "level",
+                  "layout": "${level}"
+                },
+                {
+                  "name": "logger",
+                  "layout": "${logger}"
+                },
+                {
+                  "name": "message",
+                  "layout": "${message:raw=true}"
+                },
+                {
+                  "name": "properties",
+                  "encode": false,
+                  "layout": {
+                    "type": "JsonLayout",
+                    "includeallproperties": "true"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "rules": [
+      {
+        "logger": "*",
+        "minLevel": "Trace",
+        "writeTo": "File,Console"
+      }
+    ]
+  }
+}
+```
+
+## 建立要使用 ILogger & NLog 套件的程式碼
+
+* 在 [方案總管] 內找到並且開啟 [Program.cs] 檔案這個節點
+* 使用底下 C# 程式碼，將原本的程式碼取代掉
+
+```csharp
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Extensions.Logging;
+
+namespace csLog03
+{
+    // 在 .NET Core 專案下，使用 與 NLog
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            // 取得 NLog 的日誌物件
+            var logger = LogManager.GetCurrentClassLogger();
+            // 建議接下來的程式碼，要捕捉起來，一旦發生例外，就可以寫入到日誌系統內
+            try
+            {
+                // 建立一個設定檔案的建構式
+                var config = new ConfigurationBuilder()
+                   .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                   .Build();
+
+                // 建立一個服務容器
+                using var servicesProvider = new ServiceCollection()
+                    .AddTransient<MyService>() // 註冊一個具有短暫生命週期的服務
+                    .AddLogging(loggingBuilder => // 註冊日誌服務
+                    {
+                        // 清除所有的日誌服務提供者
+                        loggingBuilder.ClearProviders();
+                        // 設定最低的日誌等級
+                        loggingBuilder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+                        // 設定日誌服務提供者為 NLog
+                        loggingBuilder.AddNLog(config);
+                    }).BuildServiceProvider();
+
+                // 取得服務容器內的 MyService 服務物件
+                var runner = servicesProvider.GetRequiredService<MyService>();
+                // 執行該服務物件的功能，該方法內會寫入一個 Debug 層級的日誌訊息
+                runner.MyAction("MyAction引數");
+
+                Console.WriteLine("Press ANY key to exit");
+                Console.ReadKey();
+            }
+            catch (Exception ex)
+            {
+                // 發生例外時，將例外訊息寫入到日誌系統內
+                logger.Error(ex, "因為系統啟動時，發生不明例外異常，系統即將停止運行");
+                // 重新拋出例外
+                throw;
+            }
+            finally
+            {
+                // 將日誌系統內的資料寫入到目的地
+                LogManager.Shutdown();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 客製服務類別
+    /// </summary>
+    public class MyService
+    {
+        /// <summary>
+        /// 注入的日誌服務物件
+        /// </summary>
+        private readonly ILogger<MyService> _logger;
+
+        public MyService(ILogger<MyService> logger)
+        {
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// 該服務所提供的功能
+        /// </summary>
+        /// <param name="name"></param>
+        public void MyAction(string name)
+        {
+            // 將指定的內容寫入到日誌系統內
+            _logger.LogDebug(20, "正在進行指派工作處理! {Action}", name);
+        }
+    }
+}
+```
+
+* 在這個程式碼中，首先建立一個型別為 [Logger] 的靜態變數 [logger]，這個變數是用來記錄 NLog 系統的 Logger 物件
+* 而在 [Main] 程式進入點方法內，將會依序呼叫 [logger] 這個物件的 [Trace] , [Debug] , [Info] , [Warn] , [Error] , [Fatal] 這六個方法，來寫入不同級別的日誌內容
+* 觀察這樣的使用方式，比對 [探討在沒有使用任何一種 Log 套件下，想要做到系統活動的設計做法](https://csharpkh.blogspot.com/2023/08/csharp-Log-common-record-system-activity-message.html) 文章內的作法，將會有天壤之別，因為，使用了類似 [NLog] 這樣的套件之後，讓整個應用程式變得更加簡單、清爽
+* 若想要指定不同日誌層級要寫入到指定目標內，僅需要修正 [NLog.config] 檔案即可，而在自行設計的程式碼中，也僅需要根據當時執行情況，寫入指定層級的日誌內容即可
+* 因此，之前提到的問題，都已經迎刃而解了。
+
+## 執行程式，觀察結果
+
+請先確認這台電腦上在 C:\ 根目錄下，有一個 temp 資料夾，以便可以讓 NLog 系統寫入相關 Log 資訊。
+
+* 按下 `F5` 鍵，開始執行這個程式
+* 請觀察 Console 視窗內的內容
+
+  ![](../Images/X2023-9920.png)
+
+```
+warn: csLog02.Program [1]
+      我是警告:Warn
+erro: csLog02.Program [1]
+      我是錯誤:error
+fata: csLog02.Program [1]
+      我是致命錯誤:Fatal
+```
+
+從執行後的螢幕輸出內容，可以看到 NLog 系統已經將日誌內容寫入到命令提示字元視窗內；並且僅有 [warn] , [error] , [fata] 這三個日誌級別的日誌內容被寫入到命令提示字元視窗內，這樣的結果是符合 NLog.config 設定檔內的規則。
+
+* 請觀察 C:\temp 目錄下，應該有兩個檔案，分別是 [AllLog.log] 和 [Sample-internal-nlog.txt] 這兩個檔案
+
+  ![](../Images/X2023-9919.png)
+
+* 請使用記事本開啟 [Sample-internal-nlog.txt] 檔案，應該可以看到底下的內容
+
+```
+2023-08-15 10:57:18.7570 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2023-08-15 10:57:18.7711 Info Registered target NLog.Targets.ConsoleTarget(Name=lifetimeConsole)
+2023-08-15 10:57:18.7853 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.3.1999. Product version: 5.2.3+a5ddef92a8afb22508450803e37c001f4a3ba52a. GlobalAssemblyCache: False
+2023-08-15 10:57:18.8079 Info Validating config: TargetNames=lifetimeConsole, allfile, ConfigItems=40, FilePath=C:\Vulcan\Projects\csLog02\csLog02\bin\Debug\net7.0\NLog.config
+2023-08-15 10:57:18.8180 Info Configuration initialized.
+2023-08-15 10:57:18.8481 Info AppDomain Shutting down. LogFactory closing...
+2023-08-15 10:57:18.8696 Info LogFactory has been closed.
+```
+
+* 請使用記事本開啟 [AllLog.log] 檔案，應該可以看到底下的內容
+
+```
+2023-08-15 10:57:18.8180|WARN|csLog02.Program|[1]|我是警告:Warn 
+2023-08-15 10:57:18.8481|ERROR|csLog02.Program|[1]|我是錯誤:error 
+2023-08-15 10:57:18.8481|FATAL|csLog02.Program|[1]|我是致命錯誤:Fatal 
+```
+
+
+
+
+
