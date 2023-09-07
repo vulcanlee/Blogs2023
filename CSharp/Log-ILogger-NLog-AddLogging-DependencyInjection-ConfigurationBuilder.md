@@ -72,7 +72,7 @@ Microsoft.Extensions.Logging (>= 6.0.0)
 NLog (>= 5.2.3)
 ```
 
-在這裡並不需要安裝 NLog.Schema 這個套件，因為，在這個範例中，將會 NLog 設定內容，宣告在應用程式設定 (appsettings.json ) 檔案內。
+在這裡並不需要安裝 NLog.Schema 這個套件，因為，在這個範例中，將會 NLog 設定內容，宣告在應用程式設定 ( appsettings.json ) 檔案內。
 
 * 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
 * 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
@@ -112,6 +112,8 @@ Microsoft.Extensions.DependencyInjection (DI) 套件是 .NET Core 的一個擴�
 * 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
 
 ## 建立 appsettings.json 設定檔
+
+所謂的 appsettings.json 設定檔，其目的與用途在於：這是一個在 ASP.NET Core 和其他 .NET Core 應用程式中常見的配置檔案。它用於存儲應用程式的配置資訊，如資料庫連接字串、API 金鑰等。因此，可以讓這個程式運作起來更加有彈性，因為可以讓 appsettings.json 檔案內容有所不同，而讓系統運作方式有所不同，在這裡將會透過這個設定檔案來指定 NLog 要記錄的各種日誌過濾條件等設定。
 
 * 滑鼠右擊 [方案總管] 視窗內的 [專案節點]
 * 從彈出功能表清單中，點選 [新增項目] 這個功能選項清單
@@ -196,6 +198,8 @@ Microsoft.Extensions.DependencyInjection (DI) 套件是 .NET Core 的一個擴�
   }
 }
 ```
+
+在這個 [NLog] 節點下的各種內容，就是用來宣告 NLog 的運作行為
 
 ## 建立要使用 ILogger & NLog 套件的程式碼
 
@@ -291,54 +295,24 @@ namespace csLog03
 }
 ```
 
-* 在這個程式碼中，首先建立一個型別為 [Logger] 的靜態變數 [logger]，這個變數是用來記錄 NLog 系統的 Logger 物件
-* 而在 [Main] 程式進入點方法內，將會依序呼叫 [logger] 這個物件的 [Trace] , [Debug] , [Info] , [Warn] , [Error] , [Fatal] 這六個方法，來寫入不同級別的日誌內容
-* 觀察這樣的使用方式，比對 [探討在沒有使用任何一種 Log 套件下，想要做到系統活動的設計做法](https://csharpkh.blogspot.com/2023/08/csharp-Log-common-record-system-activity-message.html) 文章內的作法，將會有天壤之別，因為，使用了類似 [NLog] 這樣的套件之後，讓整個應用程式變得更加簡單、清爽
-* 若想要指定不同日誌層級要寫入到指定目標內，僅需要修正 [NLog.config] 檔案即可，而在自行設計的程式碼中，也僅需要根據當時執行情況，寫入指定層級的日誌內容即可
-* 因此，之前提到的問題，都已經迎刃而解了。
+* 在上方的程式碼中，有建立一個 [MyService] 類別，這個類別內有一個方法 [MyAction]，這個方法將會模擬一項工作，並會使用 `ILogger<MyServer>` 這個型別物件，將 [Debug] 分類的日誌訊息寫入到日誌系統
+* 為了要能夠使用 `ILogger<MyServer>` 這個物件，在此使用了 [建構式注入] 設計模式，在這個 [MyService] 類別內，建立一個建構函式，其中，該建構函式將會有個 `ILogger<MyServer>` 參數，這表示當相依性注入容器要注入一個 MyServer 類別的時候，需要去解析與生成出 `ILogger<MyServer>` 這個物件，並且傳入到 [MyService] 建構式函數內。
+* 完成了需要呼叫與注入的類別，現在要來看看這個程式進入點程式碼
+* 首先，將會透過 LogManager.GetCurrentClassLogger() 方法來讀取一個 NLog 物件，並且設定給 logger 這個變數
+* 建立一個 [ConfigurationBuilder] 物件，這將會用來讀取這個程式設定檔案，也就是 [appsettings.json]
+* 接著建立 [ServiceCollection] 物件，這個物件將會用來建立相依性注入容器，而在這個容器中，也會宣告剛剛設計的 [MyService] 類別服務，其生命週期宣告為短暫的 Transient；最後將會使用 [AddLogging] 這個方法，設定日誌服務的提供者為 NLog 這個物件
+* 接著，使用 [BuildServiceProvider] 方法，將這個容器建立起來，並且將這個容器物件設定給 [servicesProvider] 這個變數
+* 接著，使用 [GetRequiredService] 方法，從 [servicesProvider] 這個容器物件內，取得 [MyService] 這個服務物件，並且設定給 [runner] 這個變數
+* 接著，呼叫 [runner] 這個物件的 [MyAction] 方法，並且傳入一個字串參數
+* 由於透過相依性注入容器注入了 [MyService] 這個物件，因此，其相依的 ILogger 物件，也會透過相依性注入容器取得
+* 因此，再呼叫了 [MyAction] 這個方法之後，將會有個訊息寫入到 NLog 日誌服務內
 
 ## 執行程式，觀察結果
 
-請先確認這台電腦上在 C:\ 根目錄下，有一個 temp 資料夾，以便可以讓 NLog 系統寫入相關 Log 資訊。
-
-* 按下 `F5` 鍵，開始執行這個程式
-* 請觀察 Console 視窗內的內容
-
-  ![](../Images/X2023-9920.png)
+這裡將會是執行這個程式後的結果
 
 ```
-warn: csLog02.Program [1]
-      我是警告:Warn
-erro: csLog02.Program [1]
-      我是錯誤:error
-fata: csLog02.Program [1]
-      我是致命錯誤:Fatal
-```
-
-從執行後的螢幕輸出內容，可以看到 NLog 系統已經將日誌內容寫入到命令提示字元視窗內；並且僅有 [warn] , [error] , [fata] 這三個日誌級別的日誌內容被寫入到命令提示字元視窗內，這樣的結果是符合 NLog.config 設定檔內的規則。
-
-* 請觀察 C:\temp 目錄下，應該有兩個檔案，分別是 [AllLog.log] 和 [Sample-internal-nlog.txt] 這兩個檔案
-
-  ![](../Images/X2023-9919.png)
-
-* 請使用記事本開啟 [Sample-internal-nlog.txt] 檔案，應該可以看到底下的內容
-
-```
-2023-08-15 10:57:18.7570 Info Registered target NLog.Targets.FileTarget(Name=allfile)
-2023-08-15 10:57:18.7711 Info Registered target NLog.Targets.ConsoleTarget(Name=lifetimeConsole)
-2023-08-15 10:57:18.7853 Info NLog, Version=5.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 5.2.3.1999. Product version: 5.2.3+a5ddef92a8afb22508450803e37c001f4a3ba52a. GlobalAssemblyCache: False
-2023-08-15 10:57:18.8079 Info Validating config: TargetNames=lifetimeConsole, allfile, ConfigItems=40, FilePath=C:\Vulcan\Projects\csLog02\csLog02\bin\Debug\net7.0\NLog.config
-2023-08-15 10:57:18.8180 Info Configuration initialized.
-2023-08-15 10:57:18.8481 Info AppDomain Shutting down. LogFactory closing...
-2023-08-15 10:57:18.8696 Info LogFactory has been closed.
-```
-
-* 請使用記事本開啟 [AllLog.log] 檔案，應該可以看到底下的內容
-
-```
-2023-08-15 10:57:18.8180|WARN|csLog02.Program|[1]|我是警告:Warn 
-2023-08-15 10:57:18.8481|ERROR|csLog02.Program|[1]|我是錯誤:error 
-2023-08-15 10:57:18.8481|FATAL|csLog02.Program|[1]|我是致命錯誤:Fatal 
+2023/09/07 13:34:56.070|DEBUG|正在進行指派工作處理! "MyAction引數" |csLog03.MyService|Action=MyAction引數, EventId=20
 ```
 
 
