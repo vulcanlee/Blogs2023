@@ -183,12 +183,170 @@ namespace AWatchThreadOnSystem
 }
 ```
 
+在 Main 這個方法內，我們會透過一個無窮迴圈，來等候使用者的指令，決定要執行哪個工作，這裡有三個選項，分別是輸入 S 按鍵，將會顯示處理程序執行緒與 .NET Managed 執行緒資訊到螢幕上；輸入 P 按鍵，將會使用執行緒集區來執行工作；輸入 E 按鍵，將會結束程式。
+
+若輸入 S 按鍵，將會執行 ShowThreadInformation() 方法，這個方法將會顯示處理程序執行緒與 .NET Managed 執行緒資訊到螢幕上，這裡會使用到兩個 API 來取得這些資訊，分別是 System.Diagnostics.Process.GetCurrentProcess().Threads 這個 API 來取得處理程序執行緒資訊，以及使用第三方套件 Microsoft.Diagnostics.Runtime 來取得 .NET Managed 執行緒資訊。
+
+若輸入 P 按鍵，將會執行 UsingThreadPool() 方法，這個方法將會使用執行緒集區來執行工作，這裡會使用到 ThreadPool.QueueUserWorkItem() 這個 API 來執行工作。在此將會依據 MaxThreads 這個物件整數值，啟用多少個執行緒來執行工作，這裡的 MaxThreads 整數值是 8。每個執行緒將會固定休息 MaxSleepTime 時間，模擬該執行緒需要花費這麼多的時間來執行工作。
+
+## 建立發佈檔案
+
+將上述的專案採用底下的模式來發布
+
+* 採用發佈到資料夾模式
+* 部署模式設定為 獨立式
+* 目標執行階段設定為 win-x64
+* 檔案發行選項內要勾選 產生單一檔案 與 修剪未使用的程式碼
+* 將發布後所產生的檔案複製到任何一個目錄下
+
 ## 執行程式，觀察結果
 
-這裡將會是執行這個程式後的結果
+開啟命令提示字元視窗，切換到剛剛複製發佈檔案的目錄下
 
+輸入 AWatchThreadOnSystem.exe 執行檔案，將會看到底下畫面
 
+![](../Images//X2023-9905.png)
 
+從 Process Explorer 視窗的上方，找到並且點選 AWatchThreadOnSystem.exe 這個處理程序，將會在下方看到有三個標籤頁次，點選到 [Threads] 標籤頁次，將會看到共有 8 個執行緒項目，其 ID 分別為 13468, 9080, 10272, 24020, 17420, 7036, 22056, 21608
 
+不過，稍微等候一段時間，將會看到 [Threads] 標籤頁次內，僅剩下四個執行緒，ID 分別為 13468, 9080, 7036, 22056
 
+![](../Images//X2023-9904.png)
+
+現在，在命令提示字元視窗內，輸入 S 按鍵，將會看到底下輸出內容
+
+```
+顯示該處理程序內在 作業系統 上的所有執行緒資訊
+OS Thread 1 : Id 9080 Normal
+OS Thread 2 : Id 7036 Normal
+OS Thread 3 : Id 22056 Normal
+OS Thread 4 : Id 13468 Highest
+OS Thread 5 : Id 23180 Normal
+顯示該處理程序內在 CLR Managed 上的所有執行緒資訊
+Managed Thread 1 : Id1 (OS Id 9080)
+Managed Thread 2 : Id2 (OS Id 13468)
+Managed Thread 3 : Id3 (OS Id 23180)
+```
+
+透過 Process Explorer 將會看到底下內容
+
+![](../Images/X2023-9903.png)
+
+從下圖中的工作管理員視窗中，看到這台測試用的主機，共有 8 個邏輯處理器
+
+![](../Images/X2023-9902.png)
+
+現在要來透過執行緒集區取得 8 個執行緒，看看在 Process Explorer 上的執行緒標籤內，會顯示甚麼內容
+
+在命令提示字元視窗內，按下按鍵 P ，在 Process Explorer 上的執行緒標籤內將會看到底下內容
+
+![](../Images/X2023-9901.png)
+
+而在命令提示字元視窗內，將會顯示
+
+```
+  Pool Managed Id : 6
+  Pool Managed Id : 4
+  Pool Managed Id : 11
+  Pool Managed Id : 8
+  Pool Managed Id : 12
+  Pool Managed Id : 9
+  Pool Managed Id : 7
+  Pool Managed Id : 10
+  ```
+
+5 秒鐘之後，將會看到底下內容顯示在命令提示字元中
+
+```
+  Pool Managed Id : 8 Exit
+  Pool Managed Id : 12 Exit
+  Pool Managed Id : 9 Exit
+  Pool Managed Id : 10 Exit
+  Pool Managed Id : 7 Exit
+  Pool Managed Id : 4 Exit
+  Pool Managed Id : 11 Exit
+  Pool Managed Id : 6 Exit
+```
+
+現在按下 P 按鍵後，緊接著按下 S 按鍵，在命令提示字元內，將會看到底下內容
+
+```
+  Pool Managed Id : 4
+  Pool Managed Id : 7
+  Pool Managed Id : 6
+  Pool Managed Id : 8
+  Pool Managed Id : 9
+  Pool Managed Id : 10
+  Pool Managed Id : 11
+  Pool Managed Id : 12
+顯示該處理程序內在 作業系統 上的所有執行緒資訊
+OS Thread 1 : Id 9232 Normal
+OS Thread 2 : Id 24452 Normal
+OS Thread 3 : Id 6964 Normal
+OS Thread 4 : Id 18780 Highest
+OS Thread 5 : Id 16464 Normal
+OS Thread 6 : Id 292 Normal
+OS Thread 7 : Id 24012 Normal
+OS Thread 8 : Id 9892 Normal
+OS Thread 9 : Id 18784 Normal
+OS Thread 10 : Id 19436 Normal
+OS Thread 11 : Id 14112 Normal
+OS Thread 12 : Id 8908 Normal
+OS Thread 13 : Id 6696 Normal
+OS Thread 14 : Id 18028 Normal
+OS Thread 15 : Id 24976 Normal
+OS Thread 16 : Id 17184 Normal
+OS Thread 17 : Id 22872 Normal
+顯示該處理程序內在 CLR Managed 上的所有執行緒資訊
+Managed Thread 1 : Id1 (OS Id 9232)
+Managed Thread 2 : Id2 (OS Id 18780)
+Managed Thread 3 : Id3 (OS Id 16464)
+Managed Thread 4 : Id4 (OS Id 292)
+Managed Thread 5 : Id5 (OS Id 24012)
+Managed Thread 6 : Id6 (OS Id 9892)
+Managed Thread 7 : Id7 (OS Id 18784)
+Managed Thread 8 : Id8 (OS Id 19436)
+Managed Thread 9 : Id9 (OS Id 14112)
+Managed Thread 10 : Id10 (OS Id 8908)
+Managed Thread 11 : Id11 (OS Id 6696)
+Managed Thread 12 : Id12 (OS Id 18028)
+Managed Thread 13 : Id13 (OS Id 22872)
+  Pool Managed Id : 8 Exit
+  Pool Managed Id : 6 Exit
+  Pool Managed Id : 9 Exit
+  Pool Managed Id : 10 Exit
+  Pool Managed Id : 11 Exit
+  Pool Managed Id : 12 Exit
+  Pool Managed Id : 7 Exit
+  Pool Managed Id : 4 Exit
+```
+
+在經過約 30 秒左右，再度按下 S 按鍵，看到底下內容
+
+```
+顯示該處理程序內在 作業系統 上的所有執行緒資訊
+OS Thread 1 : Id 9232 Normal
+OS Thread 2 : Id 24452 Normal
+OS Thread 3 : Id 6964 Normal
+OS Thread 4 : Id 18780 Highest
+OS Thread 5 : Id 24012 Normal
+OS Thread 6 : Id 24976 Normal
+OS Thread 7 : Id 17184 Normal
+顯示該處理程序內在 CLR Managed 上的所有執行緒資訊
+Managed Thread 1 : Id1 (OS Id 9232)
+Managed Thread 2 : Id2 (OS Id 18780)
+Managed Thread 3 : Id4 (OS Id 0)
+Managed Thread 4 : Id5 (OS Id 24012)
+Managed Thread 5 : Id6 (OS Id 0)
+Managed Thread 6 : Id7 (OS Id 0)
+Managed Thread 7 : Id8 (OS Id 0)
+Managed Thread 8 : Id9 (OS Id 0)
+Managed Thread 9 : Id10 (OS Id 0)
+Managed Thread 10 : Id11 (OS Id 0)
+Managed Thread 11 : Id12 (OS Id 0)
+Managed Thread 12 : Id13 (OS Id 0)
+Managed Thread 13 : Id3 (OS Id 23440)
+```
+
+將會看到有許多 Managed Thread 存在，但並沒有對應到實際作業系統上的執行緒，因為 OS Id 都為0，這是因為剛剛要到的8個執行緒，是透過執行緒集區取得的，一旦這些執行緒執行完畢之後，約 30 秒左右的時間，將會歸還給作業系統。
 
