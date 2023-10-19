@@ -34,6 +34,53 @@
 
 稍微等候一下，這個主控台專案將會建立完成
 
+## 安裝要用到的 NuGet 開發套件
+
+因為開發此專案時會用到這些 NuGet 套件，請依照底下說明，將需要用到的 NuGet 套件安裝起來。
+
+### 安裝 NLog.Extensions.Logging 套件
+
+這個套件將會是 NLog 日誌架構的擴充套件，它提供 NLog 日誌架構的擴充功能。NLog.Extensions.Logging 套件是 NLog 的一個擴展，它允許你使用 Microsoft.Extensions.Logging 的 ILogger 接口來寫日誌。這使得你可以在 .NET Core 應用程序中使用 NLog 而無需直接依賴 NLog 的 NuGet 套件。
+
+在這裡並不需要安裝 NLog.Schema 這個套件，因為，在這個範例中，將會 NLog 設定內容，宣告在應用程式設定 ( appsettings.json ) 檔案內。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `NLog.Extensions.Logging`
+* 點選 [NLog.Extensions.Logging] 套件名稱，請選擇作者為 [Microsoft,Julian Verdurmen] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
+  >若沒有發現到 [屬性] 視窗，請在 [Visual Studio] 功能表中，點選 [檢視] > [屬性視窗] 功能選項
+
+### 安裝 Microsoft.Extensions.Configuration 套件
+
+Microsoft.Extensions.Configuration 是 .NET 的一個擴展套件，允許你輕鬆地從各種來源讀取組態設定。它可用於讀取來自檔案、環境變數、命令列參數和其他來源的組態設定。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `Microsoft.Extensions.Configuration`
+* 點選 [Microsoft.Extensions.Configuration] 套件名稱，請選擇作者為 [Microsoft] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
+### 安裝 Microsoft.Extensions.DependencyInjection 套件
+
+Microsoft.Extensions.DependencyInjection (DI) 套件是 .NET Core 的一個擴展套件，它提供了一個一致的方法來註冊和解析依賴項。它可以用在任何 .NET Core 應用程序中，無論是 ASP.NET Core 應用程序還是命令列應用程序。
+
+* 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
+* 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
+* 此時，將會看到 [NuGet: csLog03] 視窗
+* 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
+* 在左上方找到一個搜尋文字輸入盒，在此輸入 `Microsoft.Extensions.DependencyInjection`
+* 點選 [Microsoft.Extensions.DependencyInjection] 套件名稱，請選擇作者為 [Microsoft] 的套件
+* 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
+* 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
+
 ## 建立 appsettings.json 設定檔
 
 所謂的 appsettings.json 設定檔，其目的與用途在於：這是一個在 ASP.NET Core 和其他 .NET Core 應用程式中常見的配置檔案。它用於存儲應用程式的配置資訊，如資料庫連接字串、API 金鑰等。因此，可以讓這個程式運作起來更加有彈性，因為可以讓 appsettings.json 檔案內容有所不同，而讓系統運作方式有所不同，在這裡將會透過這個設定檔案來指定 NLog 要記錄的各種日誌過濾條件等設定。
