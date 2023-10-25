@@ -146,6 +146,28 @@ public class SomeClass
     public string Title { get; set; }
 }
 
+public class SomeWithToStringClass
+{
+    public int Value { get; set; }
+    public string Title { get; set; }
+
+    public override string ToString()
+    {
+        return $"Title: {Title}, Value: {Value}";
+    }
+}
+
+public class SomeWithToJsonClass
+{
+    public int Value { get; set; }
+    public string Title { get; set; }
+
+    public override string ToString()
+    {
+        return JsonConvert.SerializeObject(this);
+    }
+}
+
 public class Program
 {
     // 取得當前執行這個方法的類別對應的 Logger 物件
@@ -157,12 +179,14 @@ public class Program
         Console.WriteLine($"寫入各種不同層級的 日誌項目");
 
         var someObject = new SomeClass() { Title = "外部物件", Value = 168 };
+        var someWithToStringObject = new SomeWithToStringClass() { Title = "內部物件", Value = 99 };
+        var someWithToJsonClass = new SomeWithToJsonClass() { Title = "所有物件", Value = 87 };
         Thread.Sleep(1000);
         logger.Trace("我是追蹤:Trace {someObject}", JsonConvert.SerializeObject(someObject));
         logger.Debug("我是偵錯:Debug {someObject}", someObject);
-        logger.Info("我是資訊:Info {someObject}", someObject);
-        logger.Warn("我是警告:Warn {someObject}", someObject);
-        logger.Error("我是錯誤:error {someObject}", someObject);
+        logger.Info("我是資訊:Info {someObject}", someWithToStringObject);
+        logger.Warn("我是警告:Warn {someObject}", someWithToJsonClass);
+        logger.Error("我是錯誤:error {someObject}", new { OrderId = 2, Status = "Processing" });
         logger.Fatal("我是致命錯誤:Fatal {someObject}", someObject);
 
 
@@ -175,12 +199,15 @@ public class Program
 * 在這個程式碼中，首先建立一個型別為 [Logger] 的靜態變數 [logger]，這個變數是用來記錄 NLog 系統的 Logger 物件
 * 在 Main 程式進入點的程式碼中，首先建立一個型別為 [SomeClass] 的類別，這個類別內將會有兩個屬性，分別為整數的 Value 與字串的 Title 
 * 接著，將這個類別的物件實體化，並且將這個物件的屬性值設定為 168 與 "外部物件"
+* 這個類別是沒有覆寫 ToString 這個方法
 * 所使用的程式碼如下
 
 ```csharp
 var someObject = new SomeClass() { Title = "外部物件", Value = 168 };
 ```
 
+* 接著，分別在建立兩個 SomeWithToStringClass, SomeWithToJsonClass 這兩個類別的物件實體，並且將這兩個物件的屬性值設定為 99 與 "內部物件"，87 與 "所有物件"
+* 這兩個類別分別有覆寫 ToString 方法，其中 SomeWithToStringClass 類別的 ToString 方法，將會回傳一個字串，這個字串內容為物件的屬性；而 SomeWithToJsonClass 類別的 ToString 方法，將會回傳一個 JSON 格式的字串，這個字串內容為物件的屬性
 * 使用 Thread.Sleep(1000) 使當前執行緒休息一秒鐘
 * 而在 [Main] 程式進入點方法內，將會依序呼叫 [logger] 這個物件的 [Trace] , [Debug] , [Info] , [Warn] , [Error] , [Fatal] 這六個方法，來寫入不同級別的日誌內容
 * 其中在呼叫 [Trace] 方法的時候，使用了這樣的語法
@@ -197,11 +224,39 @@ trac: csLog04.Program [1]
       我是追蹤:Trace "{"Value":168,"Title":"外部物件"}"|someObject={"Value":168,"Title":"外部物件"}
 ```
 
+* 而對於 `logger.Debug("我是偵錯:Debug {someObject}", someObject);` 這個敘述，將會輸出下列的結果
 
-* 而對於 `logger.Warn("我是警告:Warn {someObject}", someObject);` 這個敘述，將會輸出下列的結果
 
 ```
-2023-10-25 15:12:29.7908|WARN|csLog04.Program|[1]|我是警告:Warn csLog04.SomeClass 
+debu: csLog04.Program [1]
+      我是偵錯:Debug csLog04.SomeClass|someObject=csLog04.SomeClass
+```
+
+* 由於上述的方法中，所輸出的類別並沒有覆寫 ToString 方法，因此，NLog 系統將會使用類別的名稱來作為輸出的內容，這是 C# 預設行為
+
+* 而對於 `logger.Info("我是資訊:Info {someObject}", someWithToStringObject);` 這個敘述，將會輸出下列的結果
+
+```
+info: csLog04.Program [1]
+      我是資訊:Info Title: 內部物件, Value: 99|someObject=Title: 內部物件, Value: 99
+```
+
+* 上述的輸出物件有覆寫 ToString 方法，因此，NLog 將會呼叫 ToString 的客製文字輸出內容
+
+* 而對於 `logger.Warn("我是警告:Warn {someObject}", someWithToJsonClass);` 這個敘述，將會輸出下列的結果
+
+```
+warn: csLog04.Program [1]
+      我是警告:Warn {"Value":87,"Title":"所有物件"}|someObject={"Value":87,"Title":"所有物件"}
+```
+
+* 上述的輸出物件有覆寫 ToString 方法，而在該方法內將會使用 JSON.NET 序列化此 .NET 物件，因此，NLog 將會呼叫 ToString 的客製文字輸出內容
+
+* 而對於 `logger.Error("我是錯誤:error {someObject}", new { OrderId = 2, Status = "Processing" });` 這個敘述，將會輸出下列的結果
+
+```
+erro: csLog04.Program [1]
+      我是錯誤:error { OrderId = 2, Status = Processing }|someObject={ OrderId = 2, Status = Processing }
 ```
 
 * 對於複雜的.NET物件或嵌套的物件，最好使用JSON序列化的方法，因為它可以更清晰地顯示物件的層次結構
@@ -215,17 +270,17 @@ trac: csLog04.Program [1]
 ```
 寫入各種不同層級的 日誌項目
 trac: csLog04.Program [1]
-      我是追蹤:Trace "{"Value":168,"Title":"外部物件"}"|someObject={"Value":168,"Title":"外部物件"}|someObject={"Value":168,"Title":"外部物件"}
+      我是追蹤:Trace "{"Value":168,"Title":"外部物件"}"|someObject={"Value":168,"Title":"外部物件"}
 debu: csLog04.Program [1]
-      我是偵錯:Debug csLog04.SomeClass|someObject=csLog04.SomeClass|someObject=csLog04.SomeClass
+      我是偵錯:Debug csLog04.SomeClass|someObject=csLog04.SomeClass
 info: csLog04.Program [1]
-      我是資訊:Info csLog04.SomeClass|someObject=csLog04.SomeClass|someObject=csLog04.SomeClass
+      我是資訊:Info Title: 內部物件, Value: 99|someObject=Title: 內部物件, Value: 99
 warn: csLog04.Program [1]
-      我是警告:Warn csLog04.SomeClass|someObject=csLog04.SomeClass|someObject=csLog04.SomeClass
+      我是警告:Warn {"Value":87,"Title":"所有物件"}|someObject={"Value":87,"Title":"所有物件"}
 erro: csLog04.Program [1]
-      我是錯誤:error csLog04.SomeClass|someObject=csLog04.SomeClass|someObject=csLog04.SomeClass
+      我是錯誤:error { OrderId = 2, Status = Processing }|someObject={ OrderId = 2, Status = Processing }
 fata: csLog04.Program [1]
-      我是致命錯誤:Fatal csLog04.SomeClass|someObject=csLog04.SomeClass|someObject=csLog04.SomeClass
+      我是致命錯誤:Fatal csLog04.SomeClass|someObject=csLog04.SomeClass
 ```
 
 
