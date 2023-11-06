@@ -1,5 +1,7 @@
 # MongoDB 系列 - 在 Windows 作業系統上安裝 Docker
 
+![](../Images/X2023-9872.png)
+
 這是一系列的文章，主要是在說明如何使用 .NET / C# 來進行 NoSQL 之 MongoDB 的程式開發需求，不過，既然是要探討 MongoDB 的程式設計方式，就當然需要有 MongoDB 的服務存在，這可以有三種選擇：使用 MongoDB 提供的 Atlas 雲端服務、安裝 MongoDB 服務到本機電腦或者網路主機上、直接使用現有的 Docker MongoDB Container 容器。
 
 因為我之前並沒有特別去接觸與使用 Docker 這樣的工具，這也許是因為工作的關係與環境問題，不過，這裡，將會介紹如何在 Windows 作業系統上安裝 Docker Desktop，並且，使用 Docker Desktop 來啟動 MongoDB 的 Container 容器。
@@ -54,7 +56,7 @@ Docker 是一個平台，用來在一個稱為「容器」的隔離環境中執�
   >何謂 Hyper-V？
   >
   >Hyper-V 是 Microsoft 的一個硬體虛擬化產品，可讓您在單個物理硬體上運行多個虛擬機器 (VM)。每個 VM 都是一個完整的作業系統，可以獨立運行自己的程序和應用程序。
-  
+
 
 * 點選 [Ok] 按鈕
 * 此時，安裝程式正在進行解壓縮與安裝
