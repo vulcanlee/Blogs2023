@@ -174,7 +174,41 @@ internal class Program
 }
 ```
 
+這篇文章為透過 C# 程式碼來存取與使用 MongoDB 資料庫的第一篇文章，就算你本地端沒有 MongoDB 資料庫，也可以透過這篇文章來練習如何使用 C# 程式碼來存取與使用 MongoDB 資料庫，因為可以使用免費的 [MongoDB Atlas](https://www.mongodb.com/zh-cn/atlas)，所以，建議可以先到 MongoDB 官方網站上，註冊一個帳號與申請使用 MongoDB Atlas 來試用。
 
+這篇文章主要會先針對如何 CRUD (Create 新增、Retrive 查詢、Update 修改、Delete 刪除) 的四個資料基本操作動作的第一個，也就是新增，來進行說明，如何使用 C# 來做到這樣的需求。
+
+由於 MongoDB 是一個文件基礎的 NoSQL 資料庫，因此，在此，先來建立一個類別，該類別就是要準備新增到 MongoDB 文件型別。
+
+這個類別將會出現在練習程式碼的最上方，也就是類別名稱為 Blog 這個類別，該類別內隨意建立了五個屬性，在後續的程式中，將會隨機新增這些欄位的數值。
+
+現在要來進入到該程式進入點方法，也就是 Main 方法，在這個方法的最前面，將會有兩行，使用 `Environment.GetEnvironmentVariable` 方法的敘述，這兩行敘述的目的是要取得 MongoDB Atlas 的帳號與密碼，這兩個值將會設定在環境變數內，這樣的作法是為了避免帳號與密碼寫在程式碼內，這樣的作法是不安全的，因此，這裡使用環境變數來取得這兩個值。
+
+當在命令提示字元視窗內輸入了 set 命令，將會看到如下窗的輸出結果
+
+![](../Images/X2023-9856.png)
+
+在這個輸出結果內，可以看到，有兩個環境變數，分別是 `MongoDBAccount` 與 `MongoDBPassword`，這兩個環境變數的值，就是在 MongoDB Atlas 內設定的帳號與密碼。
+
+若沒有看到這組帳號與密碼，可以在命令提示字元視窗內，輸入下列的兩個命令，來設定這兩個環境變數
+
+```
+setx MongoDBAccount "妳的帳號" /M
+
+setx MongoDBPassword "你的密碼" /M
+```
+
+> 請將上述的 `妳的帳號` 與 `你的密碼` 替換成你在 MongoDB Atlas 內設定的帳號與密碼
+
+有了這樣的安全設計，就可以放心將這個專案的原始碼上傳到 GitHub 上，而不用擔心帳號與密碼的外洩。
+
+下一行 C# 敘述 `var mongoUri = $"mongodb+srv://{MongoDBAccount}:{MongoDBPassword}@vulcanmongo.hptf95d.mongodb.net/?retryWrites=true&w=majority";` 將會建立一個 MongoDB 的連線字串，這個字串將會用來連線到 MongoDB Atlas 上。其中連線用到的身分驗證用帳號與密碼，將會使用剛剛取得的環境變數內的值。
+
+現在準備好相關連線到 MongoDB Atlas 資料庫用的資訊，可以建立一個 MongoDB Client 物件，這個物件將會用來連線到 MongoDB Atlas 上。使用 `new MongoClient(mongoUri)` 這個敘述，就可以建立一個 MongoDB Client 物件，並且連線到 MongoDB Atlas 上，所建立的物件將會儲存到 `client` 這個變數內，該變數的型別為 IMongoClient。
+
+不過，若有網路設定、防火牆或安全設定的問題、帳號密碼不正確、連線主機位置不正確等問題，將會造成 `new MongoClient(mongoUri)` 表示式的執行失敗，這時，將會進入到 `catch` 區塊內，並且顯示錯誤訊息，並且結束程式的執行。
+
+若沒有發生任何的錯誤，將來簡單嘗試 MongoDB.Driver 所提供的 API，接下來，將會使用 `client.ListDatabases()` 這個方法，來列出 MongoDB Atlas 內所有的資料庫名稱，並且將這些資料庫名稱顯示在命令提示字元視窗內。
 
 
 
