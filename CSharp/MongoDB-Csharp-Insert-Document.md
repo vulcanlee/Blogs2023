@@ -42,7 +42,7 @@
 
 * 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
 * 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
-* 此時，將會看到 [NuGet: csLog02] 視窗
+* 此時，將會看到 [NuGet: csMongoDBCreate] 視窗
 * 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
 * 在左上方找到一個搜尋文字輸入盒，在此輸入 `MongoDB.Driver`
 * 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
@@ -73,6 +73,7 @@ internal class Program
 {
     public static void Main(string[] args)
     {
+        #region 準備相關設定要進行與雲端 MongoDB 連線用的參數與物件
         // 使用 Environment 來抓取環境變數設定的 帳號與密碼
         string MongoDBAccount = Environment.GetEnvironmentVariable("MongoDBAccount");
         string MongoDBPassword = Environment.GetEnvironmentVariable("MongoDBPassword");
@@ -101,7 +102,18 @@ internal class Program
             Console.WriteLine();
             return;
         }
+        #endregion
 
+        #region 列出所有的資料庫名稱
+        Console.WriteLine($"列出所有存在的資料庫");
+        var dbs = client.ListDatabases().ToList();
+        foreach (var item in dbs)
+        {
+            Console.WriteLine(item);
+        }
+        #endregion
+
+        #region 準備新增 Document 到資料庫的 Collection 內 (執行 100 次新增文件)
         // 宣告一個 Database Name 與 Collection Name
         var dbName = "MyCrud";
         var collectionName = "Blog";
@@ -134,6 +146,7 @@ internal class Program
         stopwatch.Stop();
         // 顯示需要耗費時間
         Console.WriteLine($"新增 100 次文件需要 {stopwatch.ElapsedMilliseconds} ms");
+        #endregion
 
         #region 一次新增100筆文件
         List<Blog> blogs = new List<Blog>();
