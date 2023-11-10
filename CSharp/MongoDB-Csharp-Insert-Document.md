@@ -210,7 +210,24 @@ setx MongoDBPassword "你的密碼" /M
 
 若沒有發生任何的錯誤，將來簡單嘗試 MongoDB.Driver 所提供的 API，接下來，將會使用 `client.ListDatabases()` 這個方法，來列出 MongoDB Atlas 內所有的資料庫名稱，並且將這些資料庫名稱顯示在命令提示字元視窗內。
 
+現在可以開始來寫新增文件的程式碼，準備新增 Document 到資料庫的 Collection 內 ，這裡將會執行 100 次新增動作，每次新增一筆文件，總共要新增 100 筆文件。
 
+在這個範例中，將會使用 `Stopwatch` 這個類別，來計算新增 100 筆文件所需要的時間，這個類別位於 `System.Diagnostics` 命名空間內，因此，需要先使用 `using System.Diagnostics;` 這個敘述，來引用這個命名空間。
+
+另外，需要先取得該文件的 Collection 物件，這裡使用 `collection = client.GetDatabase(dbName).GetCollection<Blog>(collectionName)` 這個敘述來做到，若該 Collection 不存在於資料庫內，將會自動建立該 Collection。
+
+有了 Collection 物件之後，就可以開始進行新增文件的動作，這裡將會使用 `collection.InsertOne(blog)` 這個方法，透過 100 次的迴圈來逐一新增一筆文件到 MongoDB 資料庫內，這個方法的參數是一個 Blog 物件，這個物件內的屬性值，將會被新增到 MongoDB 資料庫內。
+
+所以，可以看到 NoSQL 資料庫的優勢，那就是無需事先規劃資料庫綱要 Schema 或者對資料庫作證規劃設計，就可以直接將資料新增到資料庫內，這樣的作法，可以讓開發人員可以快速的開發應用程式，而不用花費大量的時間在資料庫的規劃上。這樣的設計是直覺的，就是把程式中的物件直接儲存到資料庫內。
+
+接下來要來事先透過迴圈來建立100文件物件，儲存到集合物件內，最後，僅需要呼叫一次 `collection.InsertMany(blogs)` 敘述，就可以一次把 100 筆文件寫入到 MongoDB 內了
+
+## 執行程式，觀察結果
+
+* 按下 `F5` 鍵，開始執行這個程式
+* 請觀察 Console 視窗內的內容
+
+![](../Images/X2023-9855.png)
 
 
 
