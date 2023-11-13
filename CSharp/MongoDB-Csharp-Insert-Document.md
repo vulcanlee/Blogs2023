@@ -229,5 +229,95 @@ setx MongoDBPassword "你的密碼" /M
 
 ![](../Images/X2023-9855.png)
 
+## 切換使用 Docker 容器內的 MongoDB 資料庫
+
+* 首先，確認具有 MongoDB 的容器已經啟動與執行了
+* 打開命令提示字元視窗，輸入 `docker ps -a` 指定，將會看到底下輸出內容
+
+```
+docker ps -a
+CONTAINER ID   IMAGE          COMMAND                   CREATED      STATUS          PORTS                      NAMES
+ae8e218043c1   mongo:latest   "docker-entrypoint.s…"   4 days ago   Up 13 seconds   0.0.0.0:27017->27017/tcp   mongodbmapping
+```
+
+* 在狀態欄位中看到了 [Up 13 seconds] ，這表示了這個容器已經成功啟動了
+* 接下來確認 [MyCrud] 資料庫是否存在
+* 在命令提示字元視窗內輸入 `docker exec -it mongodbmapping mongosh` 指令，直接進入到 MongoDB Shell 環境內，將會看到底下輸出內容
+
+```
+docker exec -it mongodbmapping mongosh
+Current Mongosh Log ID: 65517ae5abf0556ffc987849
+Connecting to:          mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.0.1
+Using MongoDB:          7.0.2
+Using Mongosh:          2.0.1
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+------
+   The server generated these startup warnings when booting
+   2023-11-13T01:18:33.159+00:00: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+   2023-11-13T01:18:33.159+00:00: /sys/kernel/mm/transparent_hugepage/enabled is 'always'. We suggest setting it to 'never'
+   2023-11-13T01:18:33.159+00:00: vm.max_map_count is too low
+------
+```
+
+* 輸入 `show dbs` 指令，查看 Docker 容器內的 MongoDB 內有那些資料庫存在，將會看到底下輸出內容
+
+```
+test> show dbs
+MyCrud        8.00 KiB
+admin        40.00 KiB
+config       84.00 KiB
+from_Oracle   6.34 GiB
+local        72.00 KiB
+```
+
+* 若有看到 [MyCrud] 資料庫，表示已經成功的將資料庫建立起來了
+* 使用 `use MyCrud` 指令，切換到 [MyCrud] 資料庫內，將會看到底下輸出內容
+
+```
+test> use MyCrud
+switched to db MyCrud
+```
+
+* 使用 `show collections` 指令，查看 [MyCrud] 資料庫內有那些集合存在，將會看到底下輸出內容
+
+```
+MyCrud> show collections
+Blog
+```
+
+* 若有看到 [Blog] 集合，表示已經成功的將集合建立起來了，不過，在此希望能夠從無到有的來進行開發，因此，輸入 `db.dropDatabase()` 命令將當前資料庫刪除掉，緊接著輸入 `show dbs` 查看 MongoDB 內可用的資料庫有哪些，將會看到底下輸出內容
+
+```
+MyCrud> db.dropDatabase()
+{ ok: 1, dropped: 'MyCrud' }
+MyCrud> show dbs
+admin         40.00 KiB
+config       108.00 KiB
+from_Oracle    6.34 GiB
+local         72.00 KiB
+```
+
+* 這時，可以看到 [MyCrud] 資料庫已經被刪除掉了
+* 在 Visual Studio 2022 內找到 [Program.cs] 檔案，並且使用滑鼠雙擊這個檔案，將會開啟這個檔案
+* 找到 `var mongoUri = $"..."` 這一行敘述，使用底下敘述將其替換
+
+```csharp
+var mongoUri = $"mongodb://localhost:27017/?retryWrites=true&w=majority";
+```
+
+* 此時，已經將連線字串修正成為指向到本機上的 Docker 容器內的 MongoDB 內
+* 按下 [F5] 按鍵，重新執行這個程式，最後同樣會出現底下畫面內容
+
+  ![](../Images/X2023-9854.png)
+
+* 回到 MongoSh 視窗內，輸入 `show dbs` ，確認 [MyCrud] 資料庫已經成功建立出來
+* 確認當前資料庫還是位於 [MyCrud] ，若指向資料庫位址不正確，請先輸入 `use MyCrud` 指令
+* 接著輸入 `show collections` 指令，查看這個資料庫內是否有 [Blog] 這個 Collection 建立出來
+* 最終在命令提示字元視窗內，將會看到如下面截圖
+
+  ![](../Images/X2023-9853.png)
+
 
 
