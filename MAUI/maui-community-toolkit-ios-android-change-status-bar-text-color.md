@@ -1,4 +1,4 @@
-#　.NET8 Maui 變更應用程式狀態列 Status Bar 的顏色
+# .NET8 Maui 變更應用程式狀態列 Status Bar 的顏色
 
 ![.NET8 Maui 變更應用程式狀態列 Status Bar 的顏色](../Images/X2023-9848.png)
 
