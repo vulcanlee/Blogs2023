@@ -1,4 +1,4 @@
-# 使用 Code-Behind 方式進行 MAUI 專案開發
+# .NET 8 MAUI 使用 Code-Behind 方式進行 MAUI 專案開發
 
 ![](../Images/X2023-9834.png)
 
