@@ -3,7 +3,6 @@
 ![.NET 8 MAUI 使用微軟 Community Toolkit MVVM 套件進行資料綁定開發](../Images/X2023-9835.png)
 
 
-
 ## 建立 .NET 8 MAUI 專案
 
 > **為了能夠完成這份文件所提到的事情，需要將電腦上的 Visual Studio 2022 升級到 17.8 以上的版本，也就是，這台電腦上必須要有安裝 .NET 8 SDK。**
