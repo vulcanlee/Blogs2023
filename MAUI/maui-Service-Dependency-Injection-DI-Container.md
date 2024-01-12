@@ -2,6 +2,42 @@
 
 ![](../Images/X2023-9816.png)
 
+在進行現代專案開發的時候，相依性注入 Dependency Injection 設計模式是必備的開發技能，對於想要注入服務物件的時候，可以使用建構式注入方式，輕鬆地將想要的服務物件注入到指定的類別物件內，然而，有些時候，無法直接使用相依性注入的建構式注入方式，來取得特定的服務物件，這個時候，可以選擇使用 服務定位器 這樣的設計模式來取代。
+
+服務定位器（Service Locator）是一種設計模式，用於解耦程式中的組件和它們所依賴的服務。它提供了一個中央位置，從中可以獲取和使用應用程式所需的各種服務，而不是在程式的每個部分中直接創建對這些服務的依賴關係。
+
+服務定位器（Service Locator）是一種設計模式，用於解耦程式中的組件和它們所依賴的服務。它提供了一個中央位置，從中可以獲取和使用應用程式所需的各種服務，而不是在程式的每個部分中直接創建對這些服務的依賴關係。
+
+**何時使用服務定位器模式：**
+
+1. **大型複雜應用程式**：在複雜或大型應用程式中，服務定位器可以幫助管理眾多的服務依賴關係。
+2. **需要靈活地更換或更新服務**：當應用程式需要在運行時更換或更新其依賴的服務時，使用服務定位器可以使這些變更更加容易。
+3. **避免依賴注入的複雜性**：在某些情況下，依賴注入可能導致過度複雜，服務定位器提供了一種更簡單的方法來處理依賴關係。
+
+**優點：**
+
+1. **減少依賴性**：服務定位器減少了組件之間的直接依賴，使得程式碼更加模塊化。
+2. **提高靈活性**：允許輕鬆替換和升級服務，而無需修改使用這些服務的組件。
+3. **集中管理服務**：為所有服務提供單一的入口點，方便管理和維護。
+
+### 缺點：
+
+1. **隱藏依賴**：由於依賴關係不是顯而易見的，因此可能會導致程式碼的理解和維護變得更加困難。
+2. **全局狀態**：服務定位器可能引入全局狀態，這在多線程應用程式中可能會導致問題。
+3. **單元測試挑戰**：由於依賴關係是在運行時解析的，這可能使單元測試變得更加困難。
+
+總結來說，服務定位器模式在提供便利和彈性的同時，也可能引入了某些風險和挑戰，因此在選擇使用此模式時需要權衡利弊。
+
+然而，服務定位器是一個反設計模式，也就是說在絕大多數情況下，不建議使用這樣的設計方式，可是對於一些情境下，還是需要使用這個設計模式，例如，背景服務、Android / iOS 原生專案的進入點內的方法，需要依照條件注入不同的服務物件，但是具有相同的介面。
+
+在這裡需要設計一個工廠方法，依照傳入的字串參數，注入不同的服務物件，例如，傳入字串 A ，便會回傳一個可以使用電子郵件發送訊息的服務物，傳入字串 C ，便會回傳一個可以使用 Line 發送訊息的服務物件，不過，這些實作服務物件，都繪有著相同的介面。
+
+下圖為完成後的應用程式 App，使用者可以輸入名字，接著選擇要使用哪種方式來發送訊息，在螢幕的最下方，將會是點選送出按鈕之後，所呼叫的傳送訊息服務實作物件執行結果。
+
+![](../Images/X2023-9814.png)
+
+![](../Images/X2023-9813.png)
+
 ## 建立 .NET 8 MAUI 專案
 
 * 打開 Visual Studio 2022 IDE 應用程式
@@ -46,6 +82,8 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 
 * 由於這個專案採用預設 .NET MAUI 專案範本所建立的專案，所以，專案內的資料夾結構，是採用預設的資料夾結構，為了要能夠讓專案內的資料夾結構，符合 MVVM 開發模式的資料夾結構，請依照底下的說明，將專案內的資料夾結構，修改成符合 MVVM 開發模式的資料夾結構。
 * 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
+* 將剛剛建立的資料夾名稱，使用 [Enums] 名稱來取代
+* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
 * 將剛剛建立的資料夾名稱，使用 [Views] 名稱來取代
 * 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
 * 將剛剛建立的資料夾名稱，使用 [ViewModels] 名稱來取代
@@ -56,74 +94,185 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 * 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
 * 將剛剛建立的資料夾名稱，使用 [Helpers] 名稱來取代
 
-## 建立 HomePage View
+## 建立 SendMessageTypeEnum 列舉型別
 
+* 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
+* 在對話窗的下方的名稱欄位，輸入 [SendMessageTypeEnum.cs] 作為名稱
+* 點選對話窗右下方的 [新增] 按鈕
+* 現在將會看到 [SendMessageTypeEnum.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 底下將會是這個檔案的內容
+
+```csharp
+namespace MA07.Enums;
+
+public enum SendMessageTypeEnum
+{
+    Line,
+    Sms,
+    Email
+}
+```
+
+從上述程式碼可以看到，這裡建立一個 [enum] 型別，其名稱為 [SendMessageTypeEnum] ，裡面有三個列舉成員，分別為 [Line], [Sms], [Email]，用來表示這次要解析的物件用來為 使用 Line、簡訊、電子郵件 來傳送訊息的服務物件。這個列舉型別將會用於工廠方法來生成物件區別之用。
+
+## 建立 ISendMessageService 型別
+
+* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
+* 在對話窗的下方的名稱欄位，輸入 [ISendMessageService.cs] 作為名稱
+* 點選對話窗右下方的 [新增] 按鈕
+* 現在將會看到 [ISendMessageService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 底下將會是這個檔案的內容
+
+```csharp
+namespace MA07.Services;
+
+/// <summary>
+/// 送出通知訊息介面
+/// </summary>
+public interface ISendMessageService
+{
+    string SayHello(string name, string message);
+}
+```
+
+## 建立 SendMessageTypeEnum 型別
+
+* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
+* 在對話窗的下方的名稱欄位，輸入 [SendMessageTypeEnum.cs] 作為名稱
+* 點選對話窗右下方的 [新增] 按鈕
+* 現在將會看到 [SendMessageTypeEnum.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 底下將會是這個檔案的內容
+
+```csharp
+```
+
+
+## 建立 ServiceLocatorPage View
 * 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
 * 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
-* 在對話窗的下方的名稱欄位，輸入 [HomePage.xaml] 作為名稱
+* 在對話窗的下方的名稱欄位，輸入 [ServiceLocatorPage.xaml] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [HomePage.xaml] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 現在將會看到 [ServiceLocatorPage.xaml] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 使用底下內容，替換掉這個檔案內的所有內容
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MA07.Views.HomePage"
-             Title="HomePage">
+             xmlns:viewModels="clr-namespace:MA07.ViewModels;assembly=MA07"
+             x:DataType="viewModels:ServiceLocatorPageViewModel"
+             x:Class="MA07.Views.ServiceLocatorPage"
+             Title="服務定位器的使用">
+    
+    <VerticalStackLayout Padding="20">
+        <Label 
+            Text="請輸入你的名稱" HorizontalOptions="Start" />
+        <Entry Text="{Binding Name}"/>
 
-    <Grid>
-        <VerticalStackLayout
-            Padding="30"
-            HorizontalOptions="Fill" VerticalOptions="Start">
+        <HorizontalStackLayout>
+            <Label Text="發送電子郵件的訊息" HorizontalOptions="Start" />
+            <Switch IsToggled="{Binding NeedSendEmail}" />
+        </HorizontalStackLayout>
 
-            <Label 
-                Text="數值 1" HorizontalOptions="Start"
-                FontSize="14" TextColor="Gray"/>
-            <Entry Text="" HorizontalOptions="Fill"
-                   Keyboard="Numeric"/>
-
-            <Label Margin="0,30,0,0"
-                Text="數值 2" HorizontalOptions="Start"
-                FontSize="14" TextColor="Gray"/>
-            <Entry Text="" HorizontalOptions="Fill"
-                   Keyboard="Numeric"/>
-
-            <Label Margin="0,30,0,0"
-                Text="操作錯誤警告訊息" HorizontalOptions="Start"
-                FontSize="18" TextColor="DeepPink" FontAttributes="Bold"/>
-
-            <Label Margin="0,30,0,0"
-                Text="計算結果訊息" HorizontalOptions="Start"
-                FontSize="28" TextColor="ForestGreen" FontAttributes="Bold"/>
-
-        </VerticalStackLayout>
-    </Grid>
-
+        <HorizontalStackLayout>
+            <Label Text="發送簡訊的訊息" HorizontalOptions="Start" />
+            <Switch IsToggled="{Binding NeedSendSms}" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout>
+            <Label Text="發送Line的訊息" HorizontalOptions="Start" />
+            <Switch IsToggled="{Binding NeedSendLine}" />
+        </HorizontalStackLayout>
+        
+        <Button Margin="20" Text="送出" Command="{Binding SayHelloCommand}" />
+        
+        <Label Margin="0,20" Text="送出日誌" HorizontalOptions="Fill" />
+        <Label 
+            Text="{Binding EchoEmailMessage}"
+            FontSize="20" TextColor="Orange" HorizontalOptions="Start" />
+        <Label 
+            Text="{Binding EchoLineMessage}"
+            FontSize="20" TextColor="Green" HorizontalOptions="Start" />
+        <Label 
+            Text="{Binding EchoSmsMessage}"
+            FontSize="20" TextColor="Blue" HorizontalOptions="Start" />
+    </VerticalStackLayout>
+    
 </ContentPage>
 ```
 
-## 建立 HomePage ViewModel
+## 建立 ServiceLocatorPage ViewModel
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
 * 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
-* 在對話窗的下方的名稱欄位，輸入 [HomePageViewModel.cs] 作為名稱
+* 在對話窗的下方的名稱欄位，輸入 [ServiceLocatorPageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [HomePageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 現在將會看到 [ServiceLocatorPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 底下將會是這個檔案的內容
 
 ```csharp
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MA07.Helpers;
+using MA07.Services;
 
-namespace MA07.Views
+namespace MA07.ViewModels;
+
+public partial class ServiceLocatorPageViewModel : ObservableObject
 {
-    internal class HomePageViewModel
+    private readonly IServiceProvider serviceProvider;
+    [ObservableProperty]
+    string name = string.Empty;
+    [ObservableProperty]
+    string echoEmailMessage = string.Empty;
+    [ObservableProperty]
+    string echoSmsMessage = string.Empty;
+    [ObservableProperty]
+    string echoLineMessage = string.Empty;
+    [ObservableProperty]
+    bool needSendEmail = false;
+    [ObservableProperty]
+    bool needSendSms = false;
+    [ObservableProperty]
+    bool needSendLine = false;
+
+    public ServiceLocatorPageViewModel(IServiceProvider serviceProvider)
     {
+        this.serviceProvider = serviceProvider;
+    }
+
+    [RelayCommand]
+    public void SayHello()
+    {
+        EchoEmailMessage = string.Empty;
+        EchoSmsMessage = string.Empty;
+        EchoLineMessage = string.Empty;
+
+        ISendMessageService sendHelloMessageService;
+        if (NeedSendEmail)
+        {
+            //sendHelloMessageService = serviceProvider.GetService<SendEmailService>();
+            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Email);
+            this.EchoEmailMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
+        }
+
+        if (NeedSendSms)
+        {
+            //sendHelloMessageService = serviceProvider.GetService<SendSmsService>();
+            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Sms);
+            this.EchoSmsMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
+        }
+
+        if (NeedSendLine)
+        {
+            //sendHelloMessageService = serviceProvider.GetService<SendLineService>();
+            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Line);
+            this.EchoLineMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
+        }
+
     }
 }
 ```
@@ -139,7 +288,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace MA07.Views
 {
-    public partial class HomePageViewModel :ObservableObject
+    public partial class ServiceLocatorPageViewModel :ObservableObject
     {
     }
 }
@@ -152,8 +301,8 @@ namespace MA07.Views
 * 在這個程式碼前，加入底下的程式碼
 
 ```csharp
-builder.Services.AddTransient<HomePage>();
-builder.Services.AddTransient<HomePageViewModel>();
+builder.Services.AddTransient<ServiceLocatorPage>();
+builder.Services.AddTransient<ServiceLocatorPageViewModel>();
 ```
 
 * builder 這個變數屬於 [MauiAppBuilder] 型別，而這個型別是由 [Microsoft.Maui.Controls.Hosting] 套件所提供的，這個套件是 .NET MAUI 專案的主要套件，也是 .NET MAUI 專案的核心套件，這個套件提供了 .NET MAUI 專案的主要功能，例如：專案的啟動、專案的結束、專案的相依性容器等等。
@@ -162,10 +311,10 @@ builder.Services.AddTransient<HomePageViewModel>();
 
 ## 在 View 內注入 ViewModel 並且指派給該 View 的 BindingContext
 
-* 首先，當 [HomePage.xaml] 這個 View 透過相依性注入容器解析出來之後，需要在這個 View 建構式內，同時注入這個 View 會用到的 ViewModel，也就是 [HomePageViewModel] 這個類別，並且將這個 ViewModel 物件，指定給這個 View 的 [BindingContext] 屬性，這樣，這個 ContentPage 頁面與其子項目 (Element)， 就可以使用這個 ViewModel 內的屬性與方法。
-* 在 [ViewModels] 節點內找到 [HomePage.xaml.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 首先，當 [ServiceLocatorPage.xaml] 這個 View 透過相依性注入容器解析出來之後，需要在這個 View 建構式內，同時注入這個 View 會用到的 ViewModel，也就是 [ServiceLocatorPageViewModel] 這個類別，並且將這個 ViewModel 物件，指定給這個 View 的 [BindingContext] 屬性，這樣，這個 ContentPage 頁面與其子項目 (Element)， 就可以使用這個 ViewModel 內的屬性與方法。
+* 在 [ViewModels] 節點內找到 [ServiceLocatorPage.xaml.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
 * 預設所產生出來的建構式是沒有任何參數的
-* 修改這個建構式可以接受一個 [HomePageViewModel] 類別的參數，這裡加入 `HomePageViewModel viewModel` 這個參數
+* 修改這個建構式可以接受一個 [ServiceLocatorPageViewModel] 類別的參數，這裡加入 `ServiceLocatorPageViewModel viewModel` 這個參數
 * 在 `InitializeComponent();` 這個程式碼的後面，加入 `BindingContext = viewModel;` 這個程式碼
 * 底下是完成後這個頁面的 Code Behind 程式碼
   
@@ -174,9 +323,9 @@ using MA07.ViewModels;
 
 namespace MA07.Views;
 
-public partial class HomePage : ContentPage
+public partial class ServiceLocatorPage : ContentPage
 {
-	public HomePage(HomePageViewModel viewModel)
+	public ServiceLocatorPage(ServiceLocatorPageViewModel viewModel)
 	{
 		InitializeComponent();
 		BindingContext = viewModel;
@@ -186,7 +335,7 @@ public partial class HomePage : ContentPage
 
 ## 在 ViewModel 內建立要用到的屬性與方法
 
-* 在 [ViewModels] 節點內找到 [HomePageViewModel.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 在 [ViewModels] 節點內找到 [ServiceLocatorPageViewModel.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
 * ViewModel 主要的目的是要提供該 View 所需要的商業邏輯程式碼，因此，在這裡，我們需要建立一些屬性與方法，讓 View 可以使用這些屬性與方法。這也就是 MVVM 的精神，讓 View 負責顯示 UI 元素，而 ViewModel 負責提供商業邏輯程式碼。
 * 在該類別內首先加入底下程式碼
 
@@ -267,13 +416,13 @@ void GenerateSummary(int paraNum1, int paraNum2)
 ## 進行 View 與 ViewModel 的綁定設定
 
 * 現在可以來修正 View 的 XAML 內容，將資料綁定的宣告設定上去
-* 在 [Views] 節點內找到 [HomePage.xaml] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 在 [Views] 節點內找到 [ServiceLocatorPage.xaml] 這個檔案，並且，使用滑鼠雙擊這個檔案
 * 在最上面找到 `<ContentPage` 這個節點，加入底下宣告
 
 ```xml
 BackgroundColor="LightSkyBlue"
 xmlns:viewModel="clr-namespace:MA07.ViewModels"
-x:DataType="viewModel:HomePageViewModel">
+x:DataType="viewModel:ServiceLocatorPageViewModel">
 ```
 
 * [BackgroundColor] 這個 [ContentPage] 的屬性，將會用於設定這個頁面的背景顏色為淡天空藍色
@@ -282,18 +431,18 @@ x:DataType="viewModel:HomePageViewModel">
 * 從下圖中，當在進行 [Entry.Text] 資料綁定宣告的時候，透過 [IntelliSense](https://learn.microsoft.com/zh-tw/visualstudio/ide/visual-csharp-intellisense) 機制，將可以看到現在可以用於資料綁定屬性有哪些，如下圖所示
 
   ![](../Images/X2023-9826.png)
-* 若輸入不正確的綁定屬性名稱，則會在所指定用於綁定的欄位名稱下方，看到 `....` 這樣的符號，游標移到這個符號上，將會看到如下圖，顯示出 [在資料內容 'HomePageViewModel' 中找不到成員] 這樣的錯誤提示訊息。
+* 若輸入不正確的綁定屬性名稱，則會在所指定用於綁定的欄位名稱下方，看到 `....` 這樣的符號，游標移到這個符號上，將會看到如下圖，顯示出 [在資料內容 'ServiceLocatorPageViewModel' 中找不到成員] 這樣的錯誤提示訊息。
 
   ![](../Images/X2023-9825.png)
-* 現在可以在這個頁面指定 [編譯的綁定] 設定，透過 `x:DataType="viewModel:HomePageViewModel"` 這樣的宣告，指定 [HomePage.xaml] 這個 View 的 [編譯的綁定] 型別為 [MA07.ViewModels.HomePageViewModel]
+* 現在可以在這個頁面指定 [編譯的綁定] 設定，透過 `x:DataType="viewModel:ServiceLocatorPageViewModel"` 這樣的宣告，指定 [ServiceLocatorPage.xaml] 這個 View 的 [編譯的綁定] 型別為 [MA07.ViewModels.ServiceLocatorPageViewModel]
 * 搜尋 [Text="數值 1"] 文字，找到下方的 [Entry] 檢視控制項，將 [Text] 這個 [Entry] 檢視屬性，設定為 `Text="{Binding Number1}"`
-* 這表示了，對於這個 [Entry.Text] 將會綁定到 [HomePageViewModel] 內的 Number1 這個屬性
+* 這表示了，對於這個 [Entry.Text] 將會綁定到 [ServiceLocatorPageViewModel] 內的 Number1 這個屬性
 * 搜尋 [Text="數值 2"] 文字，找到下方的 [Entry] 檢視控制項，將 [Text] 這個 [Entry] 檢視屬性，設定為 `Text="{Binding Number2}"`
-* 這表示了，對於這個 [Entry.Text] 將會綁定到 [HomePageViewModel] 內的 Number2 這個屬性
+* 這表示了，對於這個 [Entry.Text] 將會綁定到 [ServiceLocatorPageViewModel] 內的 Number2 這個屬性
 * 搜尋 [Text="操作錯誤警告訊息"] 文字，將 [Text] 這個 [Label] 檢視屬性，設定為 `Text="{Binding Message}"`
-* 這表示了，對於這個 [Label.Text] 將會綁定到 [HomePageViewModel] 內的 Message 這個屬性
+* 這表示了，對於這個 [Label.Text] 將會綁定到 [ServiceLocatorPageViewModel] 內的 Message 這個屬性
 * 搜尋 [Text="計算結果訊息"] 文字，將 [Text] 這個 [Label] 檢視屬性，設定為 `Text="{Binding Summary}"`
-* 這表示了，對於這個 [Label.Text] 將會綁定到 [HomePageViewModel] 內的 Summary 這個屬性
+* 這表示了，對於這個 [Label.Text] 將會綁定到 [ServiceLocatorPageViewModel] 內的 Summary 這個屬性
 
 ## 執行結果
 
