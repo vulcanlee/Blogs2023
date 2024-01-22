@@ -1,40 +1,14 @@
-# .NET 8 MAUI 使用服務定位器 Service Locator 手動注入相依物件
+# .NET 8 MAUI 使用相依性注入設計模式進行 MVVM App 開發
 
-![](../Images/X2023-9816.png)
+![](../Images/X2023-9812.png)
 
-在進行現代專案開發的時候，相依性注入 Dependency Injection 設計模式是必備的開發技能，對於想要注入服務物件的時候，可以使用建構式注入方式，輕鬆地將想要的服務物件注入到指定的類別物件內，然而，有些時候，無法直接使用相依性注入的建構式注入方式，來取得特定的服務物件，這個時候，可以選擇使用 服務定位器 這樣的設計模式來取代。
+在 .NET 8 MAUI 開發框架下，可以採用 MVVM 設計模式來進行開發，讓 View & ViewModel 兩者之間可以採用鬆散耦合的方式地進行開發專案，不過，若可以進一步搭配 Dependency Indection 相依性注入設計模式，可以進一步的將 ViewModel 內許多商業邏輯程式碼抽取出來，透過建構式注入方式，將需要用到的服務物件注入到 ViewModel 內，如此便可以享受到現今程式設計模式所帶來的好處。
 
-服務定位器（Service Locator）是一種設計模式，用於解耦程式中的組件和它們所依賴的服務。它提供了一個中央位置，從中可以獲取和使用應用程式所需的各種服務，而不是在程式的每個部分中直接創建對這些服務的依賴關係。
+所謂的相依性注入 (Dependency Injection) 設計模式，是指在開發專案時，將一些服務物件注入到需要用到的類別內，而不是在類別內部自行建立物件，這樣的好處是可以讓類別之間的耦合度降低，並且可以讓類別內的程式碼更加的乾淨，不會有太多的商業邏輯程式碼，而是將這些商業邏輯程式碼抽取出來，將需要用到的服務物件注入到類別內。
 
-**何時使用服務定位器模式：**
+在 .NET 8 MAUI 開發框架下，可以透過建構式注入 (Constructor Injection) 的方式，將需要用到的服務物件注入到 ViewModel 內。
 
-1. **大型複雜應用程式**：在複雜或大型應用程式中，服務定位器可以幫助管理眾多的服務依賴關係。
-2. **需要靈活地更換或更新服務**：當應用程式需要在運行時更換或更新其依賴的服務時，使用服務定位器可以使這些變更更加容易。
-3. **避免依賴注入的複雜性**：在某些情況下，依賴注入可能導致過度複雜，服務定位器提供了一種更簡單的方法來處理依賴關係。
-
-**優點：**
-
-1. **減少依賴性**：服務定位器減少了組件之間的直接依賴，使得程式碼更加模塊化。
-2. **提高靈活性**：允許輕鬆替換和升級服務，而無需修改使用這些服務的組件。
-3. **集中管理服務**：為所有服務提供單一的入口點，方便管理和維護。
-
-### 缺點：
-
-1. **隱藏依賴**：由於依賴關係不是顯而易見的，因此可能會導致程式碼的理解和維護變得更加困難。
-2. **全局狀態**：服務定位器可能引入全局狀態，這在多線程應用程式中可能會導致問題。
-3. **單元測試挑戰**：由於依賴關係是在運行時解析的，這可能使單元測試變得更加困難。
-
-總結來說，服務定位器模式在提供便利和彈性的同時，也可能引入了某些風險和挑戰，因此在選擇使用此模式時需要權衡利弊。
-
-然而，服務定位器是一個反設計模式，也就是說在絕大多數情況下，不建議使用這樣的設計方式，可是對於一些情境下，還是需要使用這個設計模式，例如，背景服務、Android / iOS 原生專案的進入點內的方法，需要依照條件注入不同的服務物件，但是具有相同的介面。
-
-在這裡需要設計一個工廠方法，依照傳入的字串參數，注入不同的服務物件，例如，傳入字串 A ，便會回傳一個可以使用電子郵件發送訊息的服務物，傳入字串 C ，便會回傳一個可以使用 Line 發送訊息的服務物件，不過，這些實作服務物件，都繪有著相同的介面。
-
-下圖為完成後的應用程式 App，使用者可以輸入名字，接著選擇要使用哪種方式來發送訊息，在這裡將會勾選了 [發送電子郵件的訊息] 與 [發送Line的訊息] 這兩種，在螢幕的最下方，當使用者點選了送出按鈕之後，將會透過 [SendMessageFactory] 工廠方法與服務定位器呼叫，來決定要注入甚麼樣的實作物件出來，不論是取得了甚麼樣的物件，這些物件都具有相同的 [ISendMessageService] 介面，並且將顯示出傳送訊息服務實作物件執行結果。
-
-![](../Images/X2023-9814.png)
-
-![](../Images/X2023-9813.png)
+在這裡將會設計一個 App，可以讓使用者輸入兩個數值，並且將兩數相加起來，將相加結果顯示在螢幕上，在這裡要進行兩數相加的商業邏輯，將會透過相依性注入的方式，將這個計算兩數相加的處理邏輯物件，注入到 ViewModel 內來使用。
 
 ## 建立 .NET 8 MAUI 專案
 
@@ -47,7 +21,7 @@
   > 此專案可用於建立適用於 iOS、Android、Mac Catalyst、Tizen 和 WinUI 的 .NET MAUI 應用程式。
 * 點選右下角的 [下一步] 按鈕
 * 在 [設定新的專案] 對話窗
-* 找到 [專案名稱] 欄位，輸入 `MA07` 作為專案名稱
+* 找到 [專案名稱] 欄位，輸入 `MA08` 作為專案名稱
 * 在剛剛輸入的 [專案名稱] 欄位下方，確認沒有勾選 [將解決方案與專案至於相同目錄中] 這個檢查盒控制項
 * 點選右下角的 [下一步] 按鈕
 * 現在將會看到 [其他資訊] 對話窗
@@ -68,7 +42,7 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 
 * 滑鼠右擊 [方案總管] 視窗內的 [專案節點] 下方的 [相依性] 節點
 * 從彈出功能表清單中，點選 [管理 NuGet 套件] 這個功能選項清單
-* 此時，將會看到 [NuGet: MA07] 視窗
+* 此時，將會看到 [NuGet: MA08] 視窗
 * 切換此視窗的標籤頁次到名稱為 [瀏覽] 這個標籤頁次
 * 在左上方找到一個搜尋文字輸入盒，在此輸入 `CommunityToolkit.Mvvm`
 * 稍待一會，將會在下方看到這個套件被搜尋出來
@@ -76,433 +50,209 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 * 在視窗右方，將會看到該套件詳細說明的內容，其中，右上方有的 [安裝] 按鈕
 * 點選這個 [安裝] 按鈕，將這個套件安裝到專案內
 
-## MVVM 開發模式用到的資料夾
+## 建立 IValueAddService 介面型別
 
-* 由於這個專案採用預設 .NET MAUI 專案範本所建立的專案，所以，專案內的資料夾結構，是採用預設的資料夾結構，為了要能夠讓專案內的資料夾結構，符合 MVVM 開發模式的資料夾結構，請依照底下的說明，將專案內的資料夾結構，修改成符合 MVVM 開發模式的資料夾結構。
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [Enums] 名稱來取代
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [Views] 名稱來取代
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [ViewModels] 名稱來取代
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [Models] 名稱來取代
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [Services] 名稱來取代
-* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增資料夾] 選項
-* 將剛剛建立的資料夾名稱，使用 [Helpers] 名稱來取代
-
-## 建立 SendMessageTypeEnum 列舉型別
-
-* 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
-* 在對話窗的下方的名稱欄位，輸入 [SendMessageTypeEnum.cs] 作為名稱
+* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA08] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
+* 在對話窗的下方的名稱欄位，輸入 [IValueAddService.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [SendMessageTypeEnum.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 現在將會看到 [IValueAddService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 使用底下內容替換掉原來的檔案內容
 
 ```csharp
-namespace MA07.Enums;
+namespace MA08;
 
-public enum SendMessageTypeEnum
+public interface IValueAddService
 {
-    Line,
-    Sms,
-    Email
+    int Add(int value1, int value2);
 }
 ```
 
-從上述程式碼可以看到，這裡建立一個 [enum] 型別，其名稱為 [SendMessageTypeEnum] ，裡面有三個列舉成員，分別為 [Line], [Sms], [Email]，用來表示這次要解析的物件用來為 使用 Line、簡訊、電子郵件 來傳送訊息的服務物件。這個列舉型別將會用於工廠方法來生成物件區別之用。
+在這個 [IValueAddService] 介面內，將會有一個 [Add] 的方法成員，這個方法將會被傳入兩個整數數值，透過該實作方法後，將會回傳兩數相加的整數結果。
 
-## 建立 ISendMessageService 介面型別
+## 建立 ValueAddService 類別型別
 
-* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [介面]
-* 在對話窗的下方的名稱欄位，輸入 [ISendMessageService.cs] 作為名稱
+在這裡需要建立一個兩數相加的具體實作類別
+
+* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA08] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
+* 在對話窗的下方的名稱欄位，輸入 [ValueAddService.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [ISendMessageService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 現在將會看到 [ValueAddService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 使用底下內容替換掉原來的檔案內容
 
 ```csharp
-namespace MA07.Services;
+namespace MA08;
 
-/// <summary>
-/// 送出通知訊息介面
-/// </summary>
-public interface ISendMessageService
+public class ValueAddService : IValueAddService
 {
-    string SayHello(string name, string message);
-}
-```
-
-在這個 [ISendMessageService] 介面內，將會有一個 [SayHello] 的方法成員，這個方法將會被傳入兩個字串，第一個為使用者的姓名，第二個為要發送的訊息，當執行完成之後，將會回傳最終要送出訊息的文字內容。
-
-## 建立 SendEmailService 實作類別型別
-
-* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
-* 在對話窗的下方的名稱欄位，輸入 [SendEmailService.cs] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [SendEmailService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容替換掉原來的檔案內容
-
-```csharp
-namespace MA07.Services;
-
-/// <summary>
-/// 實作電子郵件送出通知
-/// </summary>
-public class SendEmailService : ISendMessageService
-{
-    public string SayHello(string name, string message)
+    public int Add(int value1, int value2)
     {
-        return $"Hello, {name} , 訊息 ({message}) 已經透過 電子郵件 送出";
+        return value1 + value2;
     }
 }
 ```
 
-在這裡宣告一個 [SendEmailService] 類別，並且需要實作出 [ISendMessageService]，因此，在這個類別中，將僅會設計出一個方法， [SayHello] 其目的在於生成出要透過 電子郵件 方式送出訊息的文字內容。
+在這個 [ValueAddService] 類別內，將會宣告實作 [IValueAddService] 介面，因此，在此具體實作類別內，將會有一個 [Add] 的方法成員，這個方法將會被傳入兩個整數數值，使用 `value1 + value2` 表示式，計算得到兩數相加的整數結果，並且回傳到呼叫這個方法的呼叫端。
 
-## 建立 SendSmsService 實作類別型別
+## 對介面與實作類別註冊到 DI 容器內
 
-* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
-* 在對話窗的下方的名稱欄位，輸入 [SendSmsService.cs] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [SendSmsService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容替換掉原來的檔案內容
+為了要能夠透過建構式注入的方式進行解析需要介面的實作物件，必須要使用底下方式註冊到相依性注入容器內
 
-```csharp
-namespace MA07.Services;
-
-/// <summary>
-/// 實作 簡訊 送出通知
-/// </summary>
-public class SendSmsService : ISendMessageService
-{
-    public string SayHello(string name, string message)
-    {
-        return $"Hello, {name} , 訊息 ({message}) 已經透過 簡訊 送出";
-    }
-}
-```
-
-在這裡宣告一個 [SendSmsService] 類別，並且需要實作出 [ISendMessageService]，因此，在這個類別中，將僅會設計出一個方法， [SayHello] 其目的在於生成出要透過 簡訊 方式送出訊息的文字內容。
-
-## 建立 SendLineService 實作類別型別
-
-* 在專案內找到 [Services] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
-* 在對話窗的下方的名稱欄位，輸入 [SendLineService.cs] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [SendLineService.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容替換掉原來的檔案內容
+* 在專案根結點內找到 [MauiProgram.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 找到 `#if DEBUG`
+* 在這個程式碼前，加入底下的程式碼
 
 ```csharp
-namespace MA07.Services;
-
-/// <summary>
-/// 實作 Line 送出通知
-/// </summary>
-public class SendLineService : ISendMessageService
-{
-    public string SayHello(string name, string message)
-    {
-        return $"Hello, {name} , 訊息 ({message}) 已經透過 Line 送出";
-    }
-}
+builder.Services.AddTransient<IValueAddService, ValueAddService>();
 ```
 
-在這裡宣告一個 [SendLineService] 類別，並且需要實作出 [ISendMessageService]，因此，在這個類別中，將僅會設計出一個方法， [SayHello] 其目的在於生成出要透過 Line 方式送出訊息的文字內容。
+## 建立 MainPageViewModel ViewModel
 
-## 建立 ServiceHelper 支援類別型別
+在這個練習中，將會採用 MVVM 的設計模式，透過 View 來注入 ViewModel 物件，當相依性注入容器解析並且注入 ViewModel 物件的後，會透過該 ViewModel 建構式來注入 IValueAddService 實作物件，所以，先需要建立 MainPageViewModel 這個類別 
 
-* 在專案內找到 [Helpers] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
-* 在對話窗的下方的名稱欄位，輸入 [ServiceHelper.cs] 作為名稱
+* 滑鼠右擊專案節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
+* 在 [新增項目 - MA08] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在對話窗的下方的名稱欄位，輸入 [MainPageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [ServiceHelper.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容替換掉原來的檔案內容
-
-```csharp
-namespace MA07.Helpers;
-
-public static class ServiceHelper
-{
-    /// <summary>
-    /// 透過 IServiceProvider 來取得容器內定義的物件 - Service Locator Pattern 服務定位器
-    /// </summary>
-    /// <typeparam name="TService">傳入要注入的型別</typeparam>
-    /// <returns></returns>
-    public static TService GetService<TService>()
-        => Current.GetService<TService>();
-
-    public static IServiceProvider Current =>
-#if WINDOWS10_0_17763_0_OR_GREATER
-			MauiWinUIApplication.Current.Services;
-#elif ANDROID
-            MauiApplication.Current.Services;
-#elif IOS || MACCATALYST
-            MauiUIApplicationDelegate.Current.Services;
-#else
-			null;
-#endif
-}
-```
-
-這個支援類別，設計了一個泛型方法與一個屬性；對於這個靜態屬性 [Current] 將會取得一個有實作 [IServiceProvider] 介面的物件，在 .NET 8 的開發環境內，這代表是一個 Service Locator Pattern 服務定位器，一旦取得了這個服務定位器物件，便可以呼叫這個物件內的方法，取得或者說注入一個在 DI 相依性注入容器內定義的物件出來。
-
-由於這個 [IServiceProvider] 實作物件，在不同的平台下，將會需要使用不同的方式來取得，在這裡將會使用了 #if #elif #endif 這些 [C# 前置處理器指示詞](https://learn.microsoft.com/zh-tw/dotnet/csharp/language-reference/preprocessor-directives?WT.mc_id=DT-MVP-5002220) 分別透過各平台進入點的物件，來取得這個服務定位器物件。
-
-另外一個方式則是設計為 `public static TService GetService<TService>() => Current.GetService<TService>();` ，這表示了 [GetService] 這個泛型方法，將會收到一個型別，並且透過剛剛的 [Current] 這個服務定位器物件，解析相依性注入容器內是否有這樣的對應型別存在，並且將注入進來的物件回傳回去。
-
-## 建立 SendMessageFactory 類別型別
-
-* 在專案內找到 [Helpers] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [C#] > [類別]
-* 在對話窗的下方的名稱欄位，輸入 [SendMessageFactory.cs] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [SendMessageFactory.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容替換掉原來的檔案內容
-
-```csharp
-using MA07.Services;
-
-namespace MA07.Helpers;
-
-/// <summary>
-/// 依據 SendMessageType 產生對應的 SendMessageService
-/// </summary>
-public static class SendMessageFactory
-{
-    public static ISendMessageService Get(Enums.SendMessageTypeEnum sendMessageType)
-    {
-        switch (sendMessageType)
-        {
-            case Enums.SendMessageTypeEnum.Line:
-                return ServiceHelper.GetService<SendLineService>();
-            case Enums.SendMessageTypeEnum.Sms:
-                return ServiceHelper.GetService<SendSmsService>();
-            case Enums.SendMessageTypeEnum.Email:
-                return ServiceHelper.GetService<SendEmailService>();
-            default:
-                throw new Exception("未知的 SendMessageType");
-        }
-    }
-}
-```
-
-對於這個類別，屬於設計模式中的工廠方法，其提供一個方法 [Get] ，可以接收一個列舉值，在該方法內將會依據這個列舉值內容，使用剛剛設計的 `ServiceHelper.GetService<T>()` 這個方法，取得在容器中註冊的具體實作物件。
-
-因此，一旦得到這個工廠方法回傳了傳送訊息的物件之後，便可以使用這個物件進行特定行為的訊息傳送工作了。
-
-## 建立 ServiceLocatorPage ViewModel
-
-* 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
-* 在對話窗的下方的名稱欄位，輸入 [ServiceLocatorPageViewModel.cs] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [ServiceLocatorPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 現在將會看到 [MainPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 使用底下內容替換掉原來的檔案內容
 
 ```csharp
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MA07.Helpers;
-using MA07.Services;
 
-namespace MA07.ViewModels;
+namespace MA08;
 
-public partial class ServiceLocatorPageViewModel : ObservableObject
+public partial class MainPageViewModel :ObservableObject
 {
-    private readonly IServiceProvider serviceProvider;
     [ObservableProperty]
-    string name = string.Empty;
+    int value1=0;
     [ObservableProperty]
-    string echoEmailMessage = string.Empty;
+    int value2=0;
     [ObservableProperty]
-    string echoSmsMessage = string.Empty;
-    [ObservableProperty]
-    string echoLineMessage = string.Empty;
-    [ObservableProperty]
-    bool needSendEmail = false;
-    [ObservableProperty]
-    bool needSendSms = false;
-    [ObservableProperty]
-    bool needSendLine = false;
+    int value3=0;
+    private readonly IValueAddService valueAddService;
 
-    public ServiceLocatorPageViewModel(IServiceProvider serviceProvider)
+    public MainPageViewModel(IValueAddService valueAddService)
     {
-        this.serviceProvider = serviceProvider;
+        this.valueAddService = valueAddService;
     }
 
     [RelayCommand]
-    public void SayHello()
+    public void Add()
     {
-        EchoEmailMessage = string.Empty;
-        EchoSmsMessage = string.Empty;
-        EchoLineMessage = string.Empty;
-
-        ISendMessageService sendHelloMessageService;
-        if (NeedSendEmail)
-        {
-            //sendHelloMessageService = serviceProvider.GetService<SendEmailService>();
-            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Email);
-            this.EchoEmailMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
-        }
-
-        if (NeedSendSms)
-        {
-            //sendHelloMessageService = serviceProvider.GetService<SendSmsService>();
-            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Sms);
-            this.EchoSmsMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
-        }
-
-        if (NeedSendLine)
-        {
-            //sendHelloMessageService = serviceProvider.GetService<SendLineService>();
-            sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Line);
-            this.EchoLineMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
-        }
-
+        Value3 = valueAddService.Add(Value1, Value2);
     }
 }
 ```
 
 這是一個 .NET MAUI 頁面 View 會用到的 ViewModel 類別，其中將會使用 [CommunityToolkit.Mvvm] 這個套件來實作 MVVM 設計模式內容，來進行檢視 View 與 檢視模型 ViewModel 之間的鬆散耦合的設計。
 
-在這個 ViewModel 類別中，宣告了 [Name], [EchoEmailMessage], [EchoSmsMessage], [EchoLineMessage], [NeedSendEmail], [NeedSendSms], [NeedSendLine] 這些可以用於 View 中進行資料綁定的屬性，這裡使用了 `[ObservableProperty]` 這個 [CommunityToolkit.Mvvm] 這個套件提供的一個屬性，標註在每個欄位成員上，透過 Source Generator 原碼產生器來生成出進行 MVVM 設計模式會用到的相關程式碼。
+這個類別需要繼承 [ObservableObject] 類別，並且宣告 partial 關鍵字在該類別，這是因為 [CommunityToolkit.Mvvm] 將會透過 .NET 提供的原始碼產生技術，動態生成出適用於 MVVM 設計模式中會用到的相關程式碼、屬性與方法，若沒有加入這個 partial 關鍵字，將會造成建置時候得到了 `CS0260	類型 'MainPageViewModel' 的宣告中遺漏 partial 修飾元; 還存在此類型的其他部分宣告	` 錯誤訊息。
 
-對於 [SayHello] 這個方法，將會標註 `[RelayCommand]` 這個屬性，表示這個方法可以用於在 View 中進行 [Command] 屬性的綁定之用。在這個方法內，將會依據這三個布林值 [NeedSendEmail], [NeedSendSms], [NeedSendLine]，決定是否需要注入不同的傳送訊息的物件，並且在取得該物件之後，執行這個物件的 [SayHello] 方法。
+在這個 ViewModel 類別中，宣告了 [value1], [value2], [value3] 這些可以用於 View 中進行資料綁定的屬性，雖然這三個是屬於私有的欄位成員，不過因為這裡使用了 `[ObservableProperty]` 這個 [CommunityToolkit.Mvvm] 這個套件提供的一個屬性，標註在每個欄位成員上，透過 Source Generator 原碼產生器來生成出進行 MVVM 設計模式會用到的相關程式碼，這包括了將會建立了 [Value1], [Value2], [Value3] 這三個公開屬性成員；有了這三個公開的屬性成員，就可以 View XAML 頁面內，使用 [資料綁定](https://learn.microsoft.com/zh-tw/dotnet/maui/fundamentals/data-binding/?view=net-maui-8.0&WT.mc_id=DT-MVP-5002220) Data Binding 技術，將 ViewModel 內的屬性綁定到 XAML 頁面中特定項目 (Element) 內的屬性 (Attribute) 標籤上。
 
-```csharp
-if (NeedSendEmail)
-{
-    //sendHelloMessageService = serviceProvider.GetService<SendEmailService>();
-    sendHelloMessageService = SendMessageFactory.Get(Enums.SendMessageTypeEnum.Email);
-    this.EchoEmailMessage = sendHelloMessageService.SayHello(Name, "今日天氣晴");
-}
-```
+在這個類別 MainPageViewModel 的建構式內，宣告了 IValueAddService 這個介面參數，一旦相依性注入容器要解析與注入這個物件前，會先透過相依性注入容器，解析與取得 IValueAddService 實作物件，並且傳入到這個建構式內。
 
-## 建立 ServiceLocatorPage View
+有了這個 IValueAddService 實作物件，便可以進行設計 [Add] 這個方法，在該方法上，將會標註 `[RelayCommand]` 這個屬性，表示這個方法可以用於在 View 中進行 [Command] 屬性的綁定之用。在這個方法內，將會使用剛剛注入的物件，進行兩數相加的計算工作，使用這樣的敘述 `Value3 = valueAddService.Add(Value1, Value2);` ，最後將相加結果設定到 [Value3] 這個屬性上。
 
-* 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA07] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
-* 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
-* 在對話窗的下方的名稱欄位，輸入 [ServiceLocatorPage.xaml] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [ServiceLocatorPage.xaml] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+## 修正 MainPage View
+
+現在可以進行 [MainPage.xaml] 這個頁面的修正
+
+* 在專案根目錄下找到並且打開 [MainPage.xaml] 節點
 * 使用底下內容替換掉原來的檔案內容
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewModels="clr-namespace:MA07.ViewModels;assembly=MA07"
-             x:DataType="viewModels:ServiceLocatorPageViewModel"
-             x:Class="MA07.Views.ServiceLocatorPage"
-             Title="服務定位器的使用">
-    
-    <VerticalStackLayout Padding="20">
-        <Label 
-            Text="請輸入你的名稱" HorizontalOptions="Start" />
-        <Entry Text="{Binding Name}"/>
+             xmlns:viewModels="clr-namespace:MA08"
+             x:DataType="viewModels:MainPageViewModel"
+             x:Class="MA08.MainPage">
 
-        <HorizontalStackLayout>
-            <Label Text="發送電子郵件的訊息" HorizontalOptions="Start" />
-            <Switch IsToggled="{Binding NeedSendEmail}" />
-        </HorizontalStackLayout>
+    <Grid>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
 
-        <HorizontalStackLayout>
-            <Label Text="發送簡訊的訊息" HorizontalOptions="Start" />
-            <Switch IsToggled="{Binding NeedSendSms}" />
-        </HorizontalStackLayout>
-        <HorizontalStackLayout>
-            <Label Text="發送Line的訊息" HorizontalOptions="Start" />
-            <Switch IsToggled="{Binding NeedSendLine}" />
-        </HorizontalStackLayout>
-        
-        <Button Margin="20" Text="送出" Command="{Binding SayHelloCommand}" />
-        
-        <Label Margin="0,20" Text="送出日誌" HorizontalOptions="Fill" />
-        <Label 
-            Text="{Binding EchoEmailMessage}"
-            FontSize="20" TextColor="Orange" HorizontalOptions="Start" />
-        <Label 
-            Text="{Binding EchoLineMessage}"
-            FontSize="20" TextColor="Green" HorizontalOptions="Start" />
-        <Label 
-            Text="{Binding EchoSmsMessage}"
-            FontSize="20" TextColor="Blue" HorizontalOptions="Start" />
-    </VerticalStackLayout>
-    
+            <Label Text="數值1"/>
+            <Entry Text="{Binding Value1}"/>
+
+            <Label Text="數值2" Margin="0,20,0,0"/>
+            <Entry Text="{Binding Value2}"/>
+
+            <Button Text="加總計算" Margin="0,40,0,0"
+                    Command="{Binding AddCommand}"
+                    HorizontalOptions="Center"/>
+
+            <Label Text="加總合計" Margin="0,20,0,0"/>
+            <Label Text="{Binding Value3}" Margin="0,20,0,0"
+                   FontSize="24" FontAttributes="Bold"
+                   TextColor="Orange"/>
+        </VerticalStackLayout>
+    </Grid>
+
 </ContentPage>
 ```
 
-## 建立 View 與 ViewModel 的相依性容器註冊
+在頁面的最上方，將會使用 [x:DataType] 來宣告 [編譯的綁定](https://learn.microsoft.com/zh-tw/dotnet/maui/fundamentals/data-binding/compiled-bindings?view=net-maui-8.0&WT.mc_id=DT-MVP-5002220)，這樣當在進行 XAML 設計的時候，便可以使用到 [Visual Studio 中的 IntelliSense](https://learn.microsoft.com/zh-tw/visualstudio/ide/using-intellisense?view=vs-2022&WT.mc_id=DT-MVP-5002220) 功能，方便設計與即時檢查是否有錯誤發生。
 
-* 在專案內找到 [MauiProgram.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
-* 找到 `#if DEBUG`
-* 在這個程式碼前，加入底下的程式碼
+為了要使用這樣的機制，需要有個命名空間指向該 ViewModel 所在的命名空間內，在這裡將會使用底下的語法來做到這樣的設計需求。
 
-```csharp
-builder.Services.AddTransient<ServiceLocatorPage>();
-builder.Services.AddTransient<ServiceLocatorPageViewModel>();
-builder.Services.AddTransient<SendEmailService>();
-builder.Services.AddTransient<SendSmsService>();
-builder.Services.AddTransient<SendLineService>();
+```xml
+xmlns:viewModels="clr-namespace:MA08"
+x:DataType="viewModels:MainPageViewModel"
 ```
 
-這裡除了將 View & ViewModel 進行註冊到 DI 容器內，還將三個傳送訊息的類別，也註冊到容器內。
+在這個頁面內將會設計兩個 [Entry] 控制項，並且在其 [Text] 屬性內，使用了 `{Binding Value1}` 與 `{Binding Value2}` 這樣的資料綁定語法，使得當使用者在這兩個 [Entry] 輸入內容後，將會透過資料綁定機制，分別更新到 ViewModel 內的 Value1 & Value2 這兩個屬性上。
+
+這裡使用了 [Button] 這樣的標籤，宣告一個按鈕控制項，透過了 `Command="{Binding AddCommand}"` 這樣的語法，將此按鈕的命令屬性，綁定到 ViewModel 內的 Add RelayCommand ；雖然在 ViewModel 內設計了一個 [Add] 方法，透過原始碼生成機制，將會產生出一個型別為 [ICommand] 且可以用於命令綁定的 [AddCommand] 物件，因此，在這裡需要指定 [AddCommand] 而不是 [Add]。
+
+這裡是生成可用於命令綁定的程式碼 `public global::CommunityToolkit.Mvvm.Input.IRelayCommand AddCommand => addCommand ??= new global::CommunityToolkit.Mvvm.Input.RelayCommand(new global::System.Action(Add));`
+
+而在最下方的 [Label] 控制項的 [Text] 屬性，將會使用 `{Binding Value3}` 語法，將此文字標籤的文字綁定到 ViewModel 內的 Value3 屬性上，如此，便可以將兩數相加的結果顯示在螢幕上。
 
 ## 在 View 內注入 ViewModel 並且指派給該 View 的 BindingContext
 
-* 首先，當 [ServiceLocatorPage.xaml] 這個 View 透過相依性注入容器解析出來之後，需要在這個 View 建構式內，同時注入這個 View 會用到的 ViewModel，也就是 [ServiceLocatorPageViewModel] 這個類別，並且將這個 ViewModel 物件，指定給這個 View 的 [BindingContext] 屬性，這樣，這個 ContentPage 頁面與其子項目 (Element)， 就可以使用這個 ViewModel 內的屬性與方法。
-* 在 [Views] 節點內找到 [ServiceLocatorPage.xaml.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 首先，當 [MainPage.xaml] 這個 View 透過相依性注入容器解析出來之後，需要在這個 View 建構式內，同時注入這個 View 會用到的 ViewModel，也就是 [MainPageViewModel] 這個類別，並且將這個 ViewModel 物件，指定給這個 View 的 [BindingContext](https://learn.microsoft.com/zh-tw/dotnet/maui/fundamentals/data-binding/basic-bindings?view=net-maui-8.0&WT.mc_id=DT-MVP-5002220) 屬性，這樣，這個 ContentPage 頁面與其子項目 (Element)， 就可以使用這個 ViewModel 內的屬性與方法來進行資料綁定。
+* 在專案根目錄中內找到 [MainPage.xaml.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
 * 預設所產生出來的建構式是沒有任何參數的
-* 修改這個建構式可以接受一個 [ServiceLocatorPageViewModel] 類別的參數，這裡加入 `ServiceLocatorPageViewModel viewModel` 這個參數
+* 修改這個建構式可以接受一個 [MainPageViewModel] 類別的參數，這裡加入 `MainPageViewModel viewModel` 這個參數
 * 在 `InitializeComponent();` 這個程式碼的後面，加入 `BindingContext = viewModel;` 這個程式碼
 * 底下是完成後這個頁面的 Code Behind 程式碼
   
 ```csharp
-using MA07.ViewModels;
-
-namespace MA07.Views;
-
-public partial class ServiceLocatorPage : ContentPage
+namespace MA08
 {
-	public ServiceLocatorPage(ServiceLocatorPageViewModel viewModel)
-	{
-		InitializeComponent();
-		BindingContext = viewModel;
-	}
+    public partial class MainPage : ContentPage
+    {
+        public MainPage(MainPageViewModel viewModel)
+        {
+            InitializeComponent();
+            BindingContext = viewModel;
+        }
+    }
+
 }
 ```
 
-## 修正該 App 的第一個頁面為 
+## 註冊 View 與 ViewModel 到 DI 容器內
 
-* 在專案根目錄下，找到並且開啟 [AppShell.xaml]
-* 使用底下內容替換掉原來的檔案內容
+* 在專案根結點內找到 [MauiProgram.cs] 這個檔案，並且，使用滑鼠雙擊這個檔案
+* 找到 `#if DEBUG`
+* 在這個程式碼前，加入底下的程式碼
 
-```xml
-<?xml version="1.0" encoding="UTF-8" ?>
-<Shell
-    x:Class="MA07.AppShell"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:MA07"
-    xmlns:views="clr-namespace:MA07.Views"
-    Shell.FlyoutBehavior="Disabled"
-    Title="MA07">
-
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate views:ServiceLocatorPage}"
-        Route="MainPage" />
-
-</Shell>
+```csharp
+builder.Services.AddTransient<MainPageViewModel>();
+builder.Services.AddTransient<MainPage>();
 ```
 
-在這裡使用了 `xmlns:views="clr-namespace:MA07.Views"` 標記宣告，定義了一個新的 XAML 命名空間，這個命名空間指向了 .NET MA07.Views 這個命名空間
+## 執行並且驗證結果
 
-將 [ContentTemplate] 屬性內容修改為 `ContentTemplate="{DataTemplate views:ServiceLocatorPage}"` 這樣的標記內容，表示當 App 啟動之後，第一個顯示的頁面將會是 [ServiceLocatorPage]
+* 底下畫面將會是這個專案在 Android 平台內執行的結果
+
+![](../Images/X2023-9811.png)
+
+在數值1 欄位中，輸入 5 ，在數值2 欄位中，輸入 9 ，最後，點選 [加總計算] 按鈕，將會在最下方看到兩數相加的結果為 14 。
