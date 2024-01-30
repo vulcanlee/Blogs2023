@@ -113,10 +113,127 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 
 ## .NET MAUI 應用程式的 Splash screen
 
+對於 .NET MAUI 的 Splash screen ，將會是透過一個 SVG 檔案來設計，而這個 SVG 檔案將會是一個可以顯示出 NET 白色文字的向量圖片檔案。
+
+在方案總管中，展開資料夾 [MA06] > [Resources] > [Splash]
+
+點選這個 [splash.svg] 檔案
+
+為了要簡化練習，因此，可以從網路上隨機找一個 SVG 檔案。
+
+由於 SVG 檔案的內容就是一群 XML 文字內容，因此使用文字編輯器打開剛剛下載的 SVG 檔案，並且將這個 SVG 檔案的內容複製到剪貼簿中，接著，將會回到 Visual Studio 2022 IDE 應用程式中，找到 [Splash] 資料夾，並且點選 [splash.svg] 這個 SVG 檔案，接著，把剪貼簿的全部內容替換掉這個 SVG 檔案的內容。
+
+現在可以來使用 Figma 工具，檢視與預覽這個 SVG 檔案，下圖將會是透過 Figma 看到的預覽畫面：
+
+![](../Images/X2023-9780.png)
+
+現在要來調整當 .NET MAUI App 啟動之後，要顯示的 Splash screen ，在這裡將會需要將背景顏色做些調整成為墨綠色，接著，將 Splash screen 上的圖示換成為一個圖片，並且希望能夠指定這台汽車的顏色。
+
+為了要完成這樣的需求，可以透過底下的步驟來進行修正
+
+使用滑鼠雙擊這個專案節點，將會看到 [MA06.csproj] 這個設定檔案出現在螢幕上，對於這個檔案，也是一個 XML 檔案內容
+
+找到 [MauiSplashScreen] 這個標籤，其內容預設如下：
+
+```xml
+<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+```
+
+將這個標籤修正成為底下內容
+
+```xml
+<MauiSplashScreen Include="Resources\Splash\splash.svg" TintColor="#ebe544" Color="#548059" BaseSize="128,128" />
+```
+
+這裡將會宣告這個 .NET MAUI 的 Splash screen 的圖片顏色將會修正成為 [TintColor] 這裡所指定的色碼，也就是 黃色，這代表了將會顯示一部黃色車子出現在 Splash screen 上，而對於 [Color] 這個屬性，將會宣告這個 Splash screen 的背景顏色為 墨綠色。
+
+底下將會是執行這個 .NET MAUI App 的 Splash screen 的畫面
+
+![](../Images/X2023-9779.png)
+
 ## .NET MAUI 應用程式的 Icon 圖示
 
-## .NET MAUI 應用程式的 應用程式名稱
+在 .NET MAUI 框架中，對於 App Icon 將會使用兩個 SVG 檔案來設計，對於 [appicon.svg] 這個 SVG 檔案，本身就是一個矩形區塊，其中這個矩形將會具有藍紫色，也就是說，整個 App Icon 將會形成為藍紫色底色畫面；另外一個 SVG 檔案則為 [appiconfg.svg] ，對於這個 SVG 檔案將會是顯示在 App Icon 中間區域的圖片，在 .NET MAUI 框架下所建立的專案，這個 SVG 檔案將會是一個可以顯示出 NET 白色文字的向量圖片檔案。
 
-## .NET MAUI 應用程式的 套件名稱
+底下將會是一個 .NET MAUI 應用程式的 App Icon 範例，這個 App Icon 將會是一個藍紫色底色畫面，並且在中間區域顯示出 NET 白色文字，如下圖所示：
 
+![](../Images/X2023-9782.png)
+
+首先來了解如何修正 .NET MAUI 應用程式的 App Icon ，在這裡將會需要將背景顏色做些調整成為淡綠色，接著，將 App Icon 上的 NET 字樣移除，最後，將 Splash screen 上的圖示換成為一個圖片。
+
+在方案總管中，展開資料夾 [MA06] > [Resources] > [AppIcon]
+
+在 [AppIcon] 資料夾中，找到並且點選 [appicon.svg] 這個 SVG 檔案，接著，將會看到這個 SVG 檔案的內容，如下圖所示：
+
+![](../Images/X2023-9784.png)
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="456" height="456" fill="#512BD4" />
+</svg>
+```
+
+這個 SVG 檔案的內容是一個矩形，並且矩形的顏色是藍紫色，接著，將這個矩形的顏色改成為淡綠色，如下圖所示：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="456" height="456" fill="#adf7ae" />
+</svg>
+```
+
+在此將會找到 [fill] 這個屬性，將原先的 [#512BD4] 色碼，修改成為 [#adf7ae]，這樣就完成了 App Icon 的背景顏色修正工作
+
+接下來，可以自行設計出要顯示在 App Icon 畫面上的圖形，不過，為了展示方便，將會從網路上隨機找到一個 SVG 圖片檔案，並且將這個新的 SVG 檔案內容 (對於 SVG 圖形檔案而言，該檔案的內容就是一群 XML 文字內容) 使用任何種類的文字編輯器打開，並且將這個 SVG 檔案的內容複製到剪貼簿中，接著，將會回到 Visual Studio 2022 IDE 應用程式中，找到 [AppIcon] 資料夾，並且點選 [appiconfg.svg] 這個 SVG 檔案，接著，將會看到這個 SVG 檔案的內容，如下圖所示：
+
+![](../Images/X2023-9783.png)
+
+現在可以來使用 Figma 工具，檢視與預覽這兩個 SVG 檔案，下圖將會是透過 Figma 看到的預覽畫面：
+
+![](../Images/X2023-9785.png)
+
+若實際執行這個專案，將會看到 App Icon 的畫面如下圖所示：
+
+![](../Images/X2023-9781.png)
+
+## .NET MAUI 應用程式的 應用程式名稱與套件名稱
+
+之前有完成了這個 App Icon 圖片的修正，最後，要來修正 .NET MAUI App 的應用程式名稱的修正，這樣使用者便可以在行動裝置上看到這個 App 的實際名稱。
+
+同樣的，使用滑鼠雙擊專案節點，也就是 [MA06] 這個節點
+
+現在可以看到這個 .NET MAUI 專案的 XML 設定內容
+
+找到 [ApplicationTitle] 這個標籤，其內容如下
+
+```xml
+<!-- Display name -->
+<ApplicationTitle>MA06</ApplicationTitle>
+```
+
+將 [MA06] 這個文字，修改成為 [我的 App]，底下將會是完成的 XML 內容
+
+```xml
+<!-- Display name -->
+<ApplicationTitle>我的 App</ApplicationTitle>
+```
+
+現在要來修正該應用程式的套件名稱，搜尋並且找到 [ApplicationId] 這個標籤，其內容如下
+
+```xml
+<!-- App Identifier -->
+<ApplicationId>com.companyname.ma06</ApplicationId>
+```
+
+將 [com.companyname.ma06] 這個文字，修改成為 [com.vulcan.minicar]，底下將會是完成的 XML 內容
+
+```xml
+<!-- App Identifier -->
+<ApplicationId>com.vulcan.minicar</ApplicationId>
+```
+
+完成後，可以重新建置並且執行這個專案，接著，將會看到行動裝置桌面上看到這個 .NET MAUI App 的應用程式名稱與套件名稱已經完成修正
+
+![](../Images/X2023-9778.png)
 
