@@ -1,4 +1,4 @@
-# 建立與使用.NET MAUI Blazor Hybrid 應用程式
+# .NET 8 MAUI 建立與使用.NET MAUI Blazor Hybrid 應用程式
 
 ![](../Images/X2023-9776.png)
 
