@@ -1,4 +1,4 @@
-# .NET8 Blazor - 使用 MudBlazor 專案範本來學會使用版面配置的用法
+# .NET8 Blazor - 使用 MudBlazor 專案範本來建立Blazor專案
 
 ![](../Images/X2023-9767.png)
 
