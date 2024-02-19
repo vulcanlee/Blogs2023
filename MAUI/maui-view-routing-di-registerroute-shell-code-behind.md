@@ -146,6 +146,29 @@ public partial class HomePageViewModel : ObservableObject
 
 該頁面的 XAML 內容相當的簡單，就是有一個 [Label] 標籤和一個 [Button] 按鈕，在這個按鈕上的 [Command] 命令屬性將會使用了 [{Binding} 標記延伸](https://learn.microsoft.com/zh-tw/windows/uwp/xaml-platform/binding-markup-extension?WT.mc_id=DT-MVP-5002220)語法，`Command="{Binding GoToProductListPageCommand}"`，宣告當使用者按下這個命令之後，將會觸發 ViewModel 內的 [GoToProductListPageCommand] 命令物件 (其本身是個實作 [ICommand 介面](https://learn.microsoft.com/zh-tw/dotnet/api/system.windows.input.icommand?view=net-8.0&WT.mc_id=DT-MVP-5002220) )，也就是會要去執行 [GoToProductListPage] 這個方法
 
+## 指定 HomePageViewModel 到 HomePage 的 BindingContext
+
+* 在 [Views] 資料夾內
+* 找到並且開啟 [HomePage.xaml.cs] 檔案節點
+* 使用底下程式碼替換掉原有程式碼
+
+```csharp
+using MA03.ViewModels;
+
+namespace MA03.Views;
+
+public partial class HomePage : ContentPage
+{
+	public HomePage(HomePageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
+
+在這裡將會使用建構式注入方式，注入指定的 ViewModel 物件到 [viewModel] 這個參數內，並且指定這個參數到該頁面的 BindingContext 屬性上，這裡使用 `BindingContext = viewModel` 語法。
+
 ## 建立 ProductListPage ViewModel
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
@@ -220,6 +243,27 @@ public partial class ProductListPageViewModel :ObservableObject
 在這個頁面中，提供了兩個按鈕 [產品明細] 與 [回上頁]
 * [產品明細] 按鈕：透過 `Command="{Binding GoToProductDetailPageCommand}"`標記，將這個按鈕的點擊動作綁定到 ViewModel 上的 [GoToProductDetailPageCommand] 命令物件 (這個物件將會由 CommunityToolkit.Mvvm 透過 [來源產生器](https://learn.microsoft.com/zh-tw/dotnet/csharp/roslyn-sdk/source-generators-overview?WT.mc_id=DT-MVP-5002220) 在編譯時期產生出來) ，也就是會去執行 ViewModel 上的 [GoToProductDetailPage] 方法。
 * [回上頁] 按鈕：透過 `Command="{Binding GoBackCommand}"`標記，將這個按鈕的點擊動作綁定到 ViewModel 上的 [GoBackCommand] 命令物件，也就是會去執行 ViewModel 上的 [GoBack] 方法。
+
+## 指定 ProductListPageViewModel 到 ProductListPage 的 BindingContext
+
+* 在 [Views] 資料夾內
+* 找到並且開啟 [ProductListPage.xaml.cs] 檔案節點
+* 使用底下程式碼替換掉原有程式碼
+
+```csharp
+using MA03.ViewModels;
+
+namespace MA03.Views;
+
+public partial class ProductListPage : ContentPage
+{
+	public ProductListPage(ProductListPageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
 
 ## 建立 ProductDetialPage ViewModel
 
@@ -296,11 +340,84 @@ public partial class ProductDetailPageViewModel : ObservableObject
 * [回上頁] 按鈕：透過 `Command="{Binding GoBackCommand}"` 標記，將這個按鈕的點擊動作綁定到 ViewModel 上的 [GoBackCommand] 命令物件，也就是會去執行 ViewModel 上的 [GoBack] 方法。
 * [回首頁] 按鈕：透過 `Command="{Binding GoToHomePageCommand}"` 標記，將這個按鈕的點擊動作綁定到 ViewModel 上的 [GoToHomePageCommand] 命令物件，也就是會去執行 ViewModel 上的 [GoToHomePage] 方法。
 
+## 指定 ProductDetialPageViewModel 到 ProductDetialPage 的 BindingContext
 
+* 在 [Views] 資料夾內
+* 找到並且開啟 [ProductDetialPage.xaml.cs] 檔案節點
+* 使用底下程式碼替換掉原有程式碼
 
+```csharp
+using MA03.ViewModels;
 
+namespace MA03.Views;
 
+public partial class ProductDetailPage : ContentPage
+{
+	public ProductDetailPage(ProductDetailPageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
 
+## 定義路由
 
+* 在專案根結點下，找到並且打開 [AppShell.xaml.cs] 檔案
+* 在 [InitializeComponent();] 敘述之後，加入底下程式碼
+
+```csharp
+Routing.RegisterRoute(nameof(ProductDetailPage), typeof(ProductDetailPage));
+Routing.RegisterRoute(nameof(ProductListPage), typeof(ProductListPage));
+Routing.RegisterRoute(nameof(HomePage), typeof(HomePage));
+
+shellContent.ContentTemplate = new DataTemplate(() => homePage);
+```
+
+在這裡將會分別註冊三個路由名稱 [ProductDetailPage] , [ProductListPage] , [HomePage] 將會對應到 [ProductDetailPage] , [ProductListPage] , [HomePage] 頁面上。
+
+對於 `shellContent.ContentTemplate = new DataTemplate(() => homePage);` 敘述，則是修正這個 App 第一個要顯示的頁面為 [HomePage] 這個頁面，這個物件是透過建構式注入的方式來取得。
+
+## 修正 DI 容器需要用到的服務
+
+* 在專案根結點下，找到並且打開 [MauiProgram.cs] 檔案
+* 找到 `#if DEBUG` 敘述
+* 在此敘述前加入底下程式碼
+
+```csharp
+builder.Services.AddTransient<AppShell>();
+builder.Services.AddTransient<HomePage>();
+builder.Services.AddTransient<HomePageViewModel>();
+builder.Services.AddTransient<ProductListPage>();
+builder.Services.AddTransient<ProductListPageViewModel>();
+builder.Services.AddTransient<ProductDetailPage>();
+builder.Services.AddTransient<ProductDetailPageViewModel>();
+```
+
+在此針對剛剛新增的三個頁面 View 與 頁面模型 ViewModel，將其型別註冊到 DI 容器內
+
+## 修正 App.xaml.cs
+
+* 在專案根節點下，找到並且打開 [App.xaml.cs] 檔案
+* 使用底下程式碼替換定這個檔案內容
+
+```csharp
+namespace MA03;
+
+public partial class App : Application
+{
+    public App()
+    {
+        InitializeComponent();
+
+        AppShell appShell = MauiProgram.Current.Services.GetService<AppShell>()!;
+        MainPage mainPage = DependencyService.Resolve<MainPage>();
+        AppShell appShell1 = DependencyService.Resolve<AppShell>();
+        MainPage = appShell;
+    }
+}
+```
+
+在這裡將會透過服務定位器設計模式，使用 [MauiProgram.Current.Services] 物件來取得 [MainPage] 與 [AppShell] 這兩個物件，並且指定這個 App 的第一個頁面 (使用 [MainPage] 屬性) 為 AppShell 這個物件，也就是第一個要顯示的頁面為 [HomePage]。
 
 
