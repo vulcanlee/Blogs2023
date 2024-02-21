@@ -58,7 +58,7 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 現在要開始建立這個 App 第一個看到的頁面，也就是 SplashPage，並且進行其 ViewModel ，這將會是這個畫面的邏輯處理中心，這個 ViewModel 將會透過資料綁定的方式，將畫面上的資料與畫面上的元件進行綁定，這樣的設計方式，將會讓程式碼更加的乾淨與容易維護。
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的下方的名稱欄位，輸入 [SplashPageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
 * 現在將會看到 [SplashPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
@@ -87,7 +87,7 @@ public partial class SplashPageViewModel : ObservableObject
 ## 建立 SplashPage View
 
 * 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
 * 在對話窗的下方的名稱欄位，輸入 [SplashPage.xaml] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
@@ -164,19 +164,37 @@ builder.Services.AddTransient<SplashPageViewModel>();
 ## 建立 LoginPage ViewModel
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的下方的名稱欄位，輸入 [LoginPageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
 * 現在將會看到 [LoginPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 底下將會是這個檔案的內容
 
 ```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MA09.ViewModel;
+
+public partial class LoginPageViewModel : ObservableObject
+{
+    [RelayCommand]
+    void GoNextPage()
+    {
+        Shell.Current.GoToAsync("///Home");
+    }
+}
 ```
 
 ## 建立 LoginPage View
 
 * 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
 * 在對話窗的下方的名稱欄位，輸入 [LoginPage.xaml] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
@@ -184,6 +202,29 @@ builder.Services.AddTransient<SplashPageViewModel>();
 * 使用底下內容，替換掉這個檔案內的所有內容
 
 ```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MA09.Views.LoginPage"
+             Title="LoginPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="LightBlue"
+             xmlns:viewmodels="clr-namespace:MA09.ViewModel"
+             x:DataType="viewmodels:LoginPageViewModel"
+             >
+    <Grid>
+        <VerticalStackLayout Padding="30"
+            VerticalOptions="Start" 
+            HorizontalOptions="Center">
+            <Label 
+                Text="進行身分驗證"
+                FontSize="24" />
+            <Button Text="繼續"
+                    Command="{Binding GoNextPageCommand}"
+                    />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
 ```
 
 ## 修正 LoginPage.xaml.cs
@@ -223,19 +264,42 @@ builder.Services.AddTransient<LoginPageViewModel>();
 ## 建立 HomePage ViewModel
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的下方的名稱欄位，輸入 [HomePageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
 * 現在將會看到 [HomePageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 底下將會是這個檔案的內容
 
 ```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MA09.ViewModel;
+
+public partial class HomePageViewModel:ObservableObject
+{
+    [RelayCommand]
+    void GoNextPage()
+    {
+        Shell.Current.GoToAsync("///Login");
+    }
+    [RelayCommand]
+    void GoDetailPage()
+    {
+        Shell.Current.GoToAsync("DetailPage");
+    }
+}
 ```
 
 ## 建立 HomePage View
 
 * 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
 * 在對話窗的下方的名稱欄位，輸入 [HomePage.xaml] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
@@ -243,6 +307,32 @@ builder.Services.AddTransient<LoginPageViewModel>();
 * 使用底下內容，替換掉這個檔案內的所有內容
 
 ```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MA09.Views.HomePage"
+             Title="HomePage"
+             Shell.NavBarIsVisible="True"
+             BackgroundColor="LightGray"
+             xmlns:viewmodels="clr-namespace:MA09.ViewModel"
+             x:DataType="viewmodels:HomePageViewModel"
+             >
+    <Grid>
+        <VerticalStackLayout Padding="30"
+            VerticalOptions="Start" 
+            HorizontalOptions="Center">
+            <Label 
+                Text="App 首頁"
+                FontSize="24" />
+            <Button Text="重新登入"
+                    Command="{Binding GoNextPageCommand}"
+                    />
+            <Button Text="查看明細"
+                    Command="{Binding GoDetailPageCommand}"
+                    />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
 ```
 
 ## 建立 HomePage.xaml.cs
@@ -282,13 +372,64 @@ builder.Services.AddTransient<HomePageViewModel>();
 ## 建立 DetailPage ViewModel
 
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的下方的名稱欄位，輸入 [DetailPageViewModel.cs] 作為名稱
 * 點選對話窗右下方的 [新增] 按鈕
 * 現在將會看到 [DetailPageViewModel.cs] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
 * 底下將會是這個檔案的內容
 
 ```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace MA09.ViewModel;
+
+public partial class DetailPageViewModel : ObservableObject
+{
+    [RelayCommand]
+    void GoBackPage()
+    {
+        // 回到上一頁面
+
+        Shell.Current.GoToAsync("..");
+    }
+}
+```
+
+## 建立 DetailPage View
+
+* 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
+* 在 [新增項目 - MA09] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
+* 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
+* 在對話窗的下方的名稱欄位，輸入 [DetailPage.xaml] 作為名稱
+* 點選對話窗右下方的 [新增] 按鈕
+* 現在將會看到 [DetailPage.xaml] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
+* 使用底下內容，替換掉這個檔案內的所有內容
+
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MA09.Views.DetailPage"
+             Title="DetailPage"
+             Shell.NavBarIsVisible="True"
+             BackgroundColor="LightGreen"
+             xmlns:viewmodels="clr-namespace:MA09.ViewModel"
+             x:DataType="viewmodels:DetailPageViewModel"
+             >
+    <Grid>
+        <VerticalStackLayout Padding="30"
+            VerticalOptions="Start" 
+            HorizontalOptions="Center">
+            <Label 
+                Text="查看明細資料"
+                FontSize="24" />
+            <Button Text="返回"
+                    Command="{Binding GoBackPageCommand}"
+                    />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
 ```
 
 ## 修正 DetailPage.xaml.cs
@@ -313,19 +454,6 @@ public partial class DetailPage : ContentPage
 ```
 
 在這個 View 的 Code Behind 程式碼內，將會透過建構式注入的方式，將這個 View 的 ViewModel 注入到這個 View 內，這樣的設計方式，將會讓這個 View 與這個 View 的 ViewModel 之間，進行了鬆耦合的設計。之後，將這個 ViewModel 物件設定到 [BindingContext] ，以便可以讓 View 內的 XAML 關於資料綁定的宣告可以正常運作。
-
-## 建立 DetailPage View
-
-* 在專案內找到 [Views] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [新增項目] 選項
-* 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
-* 在對話窗的中間，點選 [.NET MAUI ContentPage (XAML)] 節點
-* 在對話窗的下方的名稱欄位，輸入 [DetailPage.xaml] 作為名稱
-* 點選對話窗右下方的 [新增] 按鈕
-* 現在將會看到 [DetailPage.xaml] 這個檔案，並且，這個檔案會被開啟在 Visual Studio 2022 的編輯器內
-* 使用底下內容，替換掉這個檔案內的所有內容
-
-```xml
-```
 
 ## 將 View 與 ViewModel 註冊到 DI 容器內
 
