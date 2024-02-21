@@ -55,6 +55,8 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 
 ## 建立 SplashPage ViewModel
 
+現在要開始建立這個 App 第一個看到的頁面，也就是 SplashPage，並且進行其 ViewModel ，這將會是這個畫面的邏輯處理中心，這個 ViewModel 將會透過資料綁定的方式，將畫面上的資料與畫面上的元件進行綁定，這樣的設計方式，將會讓程式碼更加的乾淨與容易維護。
+
 * 在專案內找到 [ViewModels] 節點，滑鼠右擊此節點，從彈出的功能表清單中，點選 [加入] > [類別] 選項
 * 在 [新增項目 - MA04] 對話窗中，點選對話窗左方的 [已安裝] > [.NET MAUI]
 * 在對話窗的下方的名稱欄位，輸入 [SplashPageViewModel.cs] 作為名稱
@@ -63,7 +65,24 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 * 底下將會是這個檔案的內容
 
 ```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace MA09.ViewModel;
+
+public partial class SplashPageViewModel : ObservableObject
+{
+    [RelayCommand]
+    void GoNextPage()
+    {
+        Shell.Current.GoToAsync("///Login");
+    }
+}
 ```
+
+這裡使用了 [CommunityToolkit.Mvvm](https://learn.microsoft.com/zh-tw/dotnet/communitytoolkit/mvvm/?WT.mc_id=DT-MVP-5002220) 套件，因此，對於 ViewModel 的類別，需要加入 [partial] 修飾詞 (詳情請參閱 [部分類別和方法](https://learn.microsoft.com/zh-tw/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods?WT.mc_id=DT-MVP-5002220))，並且需要讓這個類別繼承自 [ObservableObject] 類別，這個類別是 [CommunityToolkit.Mvvm.ComponentModel] 命名空間內的類別，這個類別提供了一些 MVVM 開發常用的功能，例如：ObservableObject、ObservableProperty、RelayCommand 等等。
+
+這個 ViewModel 內並沒有做到資料綁定的屬性定義在裡面，而是會提供了一個 [GoNextPage] 方法，這個方法將會在按下按鈕之後，導航到 [LoginPage] 頁面，在此使用了 `Shell.Current.GoToAsync("///Login");` 這個敘述來做到，對於這個 "Login" 路由名稱，將會於稍後會在 [AppShell.xaml] 檔案內進行定義 。
 
 ## 建立 SplashPage View
 
@@ -76,7 +95,60 @@ CommunityToolkit.Mvvm 是微軟官方提供的 MVVM 套件，提供了一些 MVV
 * 使用底下內容，替換掉這個檔案內的所有內容
 
 ```xml
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MA09.Views.SplashPage"
+             Title="SplashPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="LightYellow"
+             xmlns:viewmodels="clr-namespace:MA09.ViewModel"
+             x:DataType="viewmodels:SplashPageViewModel"
+             >
+    <Grid>
+        <VerticalStackLayout Padding="30"
+            VerticalOptions="Start" 
+            HorizontalOptions="Center">
+            <Label 
+                Text="啟動的 Splash Screen"
+                FontSize="24" />
+            <Button Text="繼續"
+                    Command="{Binding GoNextPageCommand}"
+                    />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
 ```
+
+一般來說，在 Splash 頁面中，通常會去載入一些遠端資料或者進行相關系統初始化工作和取回這個應用程式上次最後的執行狀態值，例如，是否已經成功登入，登入成功後的 Token 與 Refresh Token 內容等等。一旦這些工作處理完成之後，將會依照現在 App 狀態內容，切換到應該要看到的畫面。
+
+舉例來說，若這個應用程式尚未成功通過身分驗證程序，此時，接下來就應該要顯示 LoginPage 頁面；而當使用者在關閉這個 App 前
+已經通過了身分驗證程序，此時再次打開 App 之後且完成 Splash 處理程序之後，接下來就需要顯示 HomePage。
+
+因為在這裡將會簡化這些程序，不會自動切換到另外一個畫面，在這個頁面中的 XAML 宣告，在螢幕上有個 [繼續] 按鈕，當點擊這個按鈕之後，將會切換到 LoginPage 這個頁面。
+
+## 修正 SplashPage.xaml.cs
+
+* 找到專案根目錄下的 [Views] 資料夾
+* 找到並且打開 [SplashPage.xaml.cs] 檔案
+* 使用底下的程式碼，取代掉這個檔案內的所有程式碼
+
+```csharp
+using MA09.ViewModel;
+
+namespace MA09.Views;
+
+public partial class SplashPage : ContentPage
+{
+	public SplashPage(SplashPageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
+
+在這個 View 的 Code Behind 程式碼內，將會透過建構式注入的方式，將這個 View 的 ViewModel 注入到這個 View 內，這樣的設計方式，將會讓這個 View 與這個 View 的 ViewModel 之間，進行了鬆耦合的設計。之後，將這個 ViewModel 物件設定到 [BindingContext] ，以便可以讓 View 內的 XAML 關於資料綁定的宣告可以正常運作。
 
 ## 將 View 與 ViewModel 註冊到 DI 容器內
 
@@ -114,6 +186,29 @@ builder.Services.AddTransient<SplashPageViewModel>();
 ```xml
 ```
 
+## 修正 LoginPage.xaml.cs
+
+* 找到專案根目錄下的 [Views] 資料夾
+* 找到並且打開 [LoginPage.xaml.cs] 檔案
+* 使用底下的程式碼，取代掉這個檔案內的所有程式碼
+
+```csharp
+using MA09.ViewModel;
+
+namespace MA09.Views;
+
+public partial class LoginPage : ContentPage
+{
+	public LoginPage(LoginPageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
+
+在這個 View 的 Code Behind 程式碼內，將會透過建構式注入的方式，將這個 View 的 ViewModel 注入到這個 View 內，這樣的設計方式，將會讓這個 View 與這個 View 的 ViewModel 之間，進行了鬆耦合的設計。之後，將這個 ViewModel 物件設定到 [BindingContext] ，以便可以讓 View 內的 XAML 關於資料綁定的宣告可以正常運作。
+
 ## 將 View 與 ViewModel 註冊到 DI 容器內
 
 * 在專案根節點下，找到並打開 [Program.cs] 檔案
@@ -150,6 +245,29 @@ builder.Services.AddTransient<LoginPageViewModel>();
 ```xml
 ```
 
+## 建立 HomePage.xaml.cs
+
+* 找到專案根目錄下的 [Views] 資料夾
+* 找到並且打開 [HomePage.xaml.cs] 檔案
+* 使用底下的程式碼，取代掉這個檔案內的所有程式碼
+
+```csharp
+using MA09.ViewModel;
+
+namespace MA09.Views;
+
+public partial class HomePage : ContentPage
+{
+	public HomePage(HomePageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
+
+在這個 View 的 Code Behind 程式碼內，將會透過建構式注入的方式，將這個 View 的 ViewModel 注入到這個 View 內，這樣的設計方式，將會讓這個 View 與這個 View 的 ViewModel 之間，進行了鬆耦合的設計。之後，將這個 ViewModel 物件設定到 [BindingContext] ，以便可以讓 View 內的 XAML 關於資料綁定的宣告可以正常運作。
+
 ## 將 View 與 ViewModel 註冊到 DI 容器內
 
 * 在專案根節點下，找到並打開 [Program.cs] 檔案
@@ -172,6 +290,29 @@ builder.Services.AddTransient<HomePageViewModel>();
 
 ```csharp
 ```
+
+## 修正 DetailPage.xaml.cs
+
+* 找到專案根目錄下的 [Views] 資料夾
+* 找到並且打開 [DetailPage.xaml.cs] 檔案
+* 使用底下的程式碼，取代掉這個檔案內的所有程式碼
+
+```csharp
+using MA09.ViewModel;
+
+namespace MA09.Views;
+
+public partial class DetailPage : ContentPage
+{
+	public DetailPage(DetailPageViewModel viewModel)
+	{
+		InitializeComponent();
+		BindingContext = viewModel;
+	}
+}
+```
+
+在這個 View 的 Code Behind 程式碼內，將會透過建構式注入的方式，將這個 View 的 ViewModel 注入到這個 View 內，這樣的設計方式，將會讓這個 View 與這個 View 的 ViewModel 之間，進行了鬆耦合的設計。之後，將這個 ViewModel 物件設定到 [BindingContext] ，以便可以讓 View 內的 XAML 關於資料綁定的宣告可以正常運作。
 
 ## 建立 DetailPage View
 
